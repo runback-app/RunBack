@@ -33,8 +33,10 @@ Signed-out visitors see courts, hours, and player counts. Names, photos, and pro
 | Alerts | Web push. `supabase/functions/send-alerts` sends them; the database decides who gets one (`alert_targets`) |
 | Map | Leaflet with OpenStreetMap tiles |
 | Usage stats | Vercel Web Analytics |
-| Hosting | Vercel. Every push to `main` deploys automatically |
+| Hosting | Vercel. Every push to `main` deploys automatically once the checks pass (the deploy runs in GitHub Actions) |
 | Checks | GitHub Actions runs type checks, tests, and a build on every push |
+
+The repo lives in the `runback-app` GitHub org. Vercel's free plan won't deploy a private org repo directly, so the `deploy` job in `.github/workflows/ci.yml` does it with the Vercel CLI. It needs a `VERCEL_TOKEN` secret in the repo's Actions secrets. If deploys suddenly fail, check whether that token expired.
 
 The main logic lives in `src/lib/` (court hours, timers, run meter, invites, profiles, alerts), and each file there has a matching `.test.ts`.
 
