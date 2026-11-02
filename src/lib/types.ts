@@ -9,6 +9,10 @@ export type Court = {
   address: string;
   hours: WeekHours;
   note: string | null;
+  access_note?: string | null;
+  hoop_count?: number | null;
+  closure_note?: string | null;
+  closure_until?: string | null;
   sort_order: number;
   lat: number | null;
   lng: number | null;
@@ -44,6 +48,8 @@ export type LiveCheckin = Checkin & {
 };
 
 export type Crew = {
+  description?: string;
+  avatar_url?: string | null;
   id: string;
   name: string;
   court_id: string | null;

@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth';
+import { supabase } from '../lib/supabase';
 import { ErrorNote } from '../components';
 
 /** Only allow redirects back into this site. */
@@ -21,6 +22,9 @@ export function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [checkEmail, setCheckEmail] = useState(false);
+  const [showPassword,setShowPassword]=useState(false);
+  const [resetSent,setResetSent]=useState(false);
+  const [confirmPassword,setConfirmPassword]=useState('');
 
   useEffect(() => {
     if (userId) navigate(next, { replace: true });
@@ -41,6 +45,7 @@ export function LoginPage() {
       setError('Add the name people know you by.');
       return;
     }
+    if(mode==='signup'&&password!==confirmPassword){setError('Passwords do not match.');return;}
     setBusy(true);
     try {
       if (mode === 'signup') {
@@ -88,16 +93,20 @@ export function LoginPage() {
         <label className="field">
           <span>Password</span>
           <input
-            type="password"
+            type={showPassword?"text":"password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
             minLength={6}
             required
           />
+          <button className="link-button" type="button" aria-pressed={showPassword} onClick={()=>setShowPassword(!showPassword)}>{showPassword?'Hide password':'Show password'}</button>
           {mode === 'signup' && <small className="muted">At least 6 characters.</small>}
         </label>
+        {mode==='signup'&&<label className="field"><span>Confirm password</span><input type={showPassword?'text':'password'} value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} autoComplete="new-password" required minLength={6}/></label>}
         {error && <ErrorNote>{error}</ErrorNote>}
+        {mode==='signin'&&<button className="link-button" type="button" disabled={busy} onClick={async()=>{if(!email.trim()){setError('Enter your email first, then tap Forgot password.');return;}setBusy(true);setError(null);try{const {error}=await supabase.auth.resetPasswordForEmail(email.trim(),{redirectTo:window.location.origin+'/reset-password'});if(error)throw error;setResetSent(true);}catch(e){setError(e instanceof Error?e.message:'Could not request reset.');}finally{setBusy(false);}}}>Forgot password?</button>}
+        {resetSent&&<p role="status" className="ok">If an account exists for that email, check your inbox for a reset link. Check spam too.</p>}
         <button className="btn btn-primary btn-block" type="submit" disabled={busy}>
           {busy ? 'One sec…' : mode === 'signup' ? 'Create account' : 'Sign in'}
         </button>

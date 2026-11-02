@@ -13,6 +13,8 @@ describe('cleanPageUrl', () => {
     expect(cleanPageUrl('/player/31a6ccbb-3079-4f73-b63b-c012d5826496')).toBe('/player/[id]');
   });
 
+  it('hides run identifiers',()=>{expect(cleanPageUrl('/run/private-id')).toBe('/run/[id]');});
+
   it('drops query strings and hashes', () => {
     expect(cleanPageUrl('https://runback-tucson.vercel.app/login?next=/join/abc#x')).toBe(
       'https://runback-tucson.vercel.app/login',

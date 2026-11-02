@@ -1,3 +1,6 @@
+import { ResetPasswordPage } from './ResetPasswordPage';
+import { Notifications } from './Notifications';
+import { RunPage } from './RunTools';
 import { Link, NavLink, Route, Routes } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import { useAuth } from './auth';
@@ -26,7 +29,7 @@ function Header() {
         <NavLink to="/" end>
           Courts
         </NavLink>
-        <NavLink to="/crews">Crews</NavLink>
+        <NavLink to="/crews">Crews</NavLink>{userId&&<NavLink to="/updates">Updates</NavLink>}
         {userId ? (
           <NavLink to="/me" className="nav-me" aria-label="Your profile">
             <Avatar name={profile?.display_name} url={profile?.avatar_url} size={32} seed={userId} />
@@ -82,10 +85,10 @@ export function App() {
           <Route path="/" element={<CourtsPage />} />
           <Route path="/court/:slug" element={<CourtPage />} />
           <Route path="/crews" element={<CrewsPage />} />
-          <Route path="/crew/:id" element={<CrewPage />} />
+          <Route path="/updates" element={<Notifications/>}/><Route path="/run/:id" element={<RunPage/>}/><Route path="/crew/:id" element={<CrewPage />} />
           <Route path="/join/:code" element={<JoinPage />} />
           <Route path="/player/:id" element={<PlayerPage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage/>}/><Route path="/login" element={<LoginPage />} />
           <Route path="/me" element={<ProfilePage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route

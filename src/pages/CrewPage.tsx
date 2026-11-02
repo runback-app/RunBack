@@ -1,3 +1,6 @@
+import { CrewRuns } from '../RunTools';
+import { Chat } from '../Chat';
+import { CrewSettings, CrewPicture } from '../CrewSettings';
 import { useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth';
@@ -71,14 +74,14 @@ export function CrewPage() {
       <p className="crumb">
         <Link to="/crews">Your crews</Link>
       </p>
-      <h1 className="page-title">{c.name}</h1>
+      <CrewPicture path={c.avatar_url} name={c.name}/><h1 className="page-title">{c.name}</h1>{c.description&&<p>{c.description}</p>}
       <p className="court-meta">
         {[c.schedule, c.courts?.name].filter(Boolean).join(' at ') || 'No regular time set'}
       </p>
 
       <InvitePanel crewName={c.name} code={c.invite_code} fresh={params.get('new') === '1'} />
 
-      <section className="subsection">
+      <CrewRuns key={c.id} crewId={c.id} leader={isOwner}/>{isOwner&&<CrewSettings crew={c} reload={crew.reload}/>}<Chat key={`${userId}:${c.id}`} crewId={c.id} leader={isOwner}/><section className="subsection">
         <h2>Playing now</h2>
         {playingNow.length === 0 ? (
           <p className="muted">Nobody from the crew is checked in.</p>

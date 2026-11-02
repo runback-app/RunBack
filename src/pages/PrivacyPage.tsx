@@ -33,7 +33,7 @@ export function PrivacyPage() {
           <strong>Check-ins:</strong> which court you checked in at and when.
         </li>
         <li>
-          <strong>Crews:</strong> crews you start or join.
+          <strong>Crews and runs:</strong> crews you start or join, planned runs, RSVPs, reminders, crew photos, and messages you post.
         </li>
         <li>
           <strong>Alerts:</strong> your starred courts and alert settings. If you turn on alerts, we store a device
@@ -58,14 +58,14 @@ export function PrivacyPage() {
         </li>
         <li>
           <strong>Your crews:</strong> who's in the crew and its invite link. Anyone with the link can join, so only
-          share it with people you want in.
+          share it with people you want in. Current crew members can see crew/run chats, RSVPs, and crew photos. Crew leaders can remove messages and members.
         </li>
       </ul>
 
       <h2>How long we keep it</h2>
       <ul>
         <li>Check-ins leave the app when your time runs out. The history is deleted after 30 days.</li>
-        <li>Everything else stays until you change it or delete your account.</li>
+        <li>Chat messages and run details stay until removed or the crew is deleted. Your messages and RSVPs are deleted when you delete your account.</li>
       </ul>
 
       <h2>Deleting your account</h2>

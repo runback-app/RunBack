@@ -13,6 +13,7 @@ export function cleanPageUrl(url: string): string {
   const path = parsed.pathname
     .replace(/^\/join\/[^/]+/, '/join/[code]')
     .replace(/^\/crew\/[^/]+/, '/crew/[id]')
-    .replace(/^\/player\/[^/]+/, '/player/[id]');
+    .replace(/^\/player\/[^/]+/, '/player/[id]')
+    .replace(/^\/run\/[^/]+/, '/run/[id]');
   return /^https?:\/\//.test(url) ? `${parsed.origin}${path}` : path;
 }

@@ -49,7 +49,8 @@ export function CourtPage() {
         </div>
         <FavoriteButton court={court} />
       </div>
-      <StatusPill status={courtStatus(court.hours, now)} />
+      {court.closure_note && (!court.closure_until || new Date(court.closure_until)>now) ? <p role="status" className="error-note">Temporary closure: {court.closure_note}</p> : <StatusPill status={courtStatus(court.hours, now)} />}
+      <section className="panel"><h2>Before you go</h2><p>{court.access_note ?? 'Entry rules and fees have not been verified. Check with the facility before travelling.'}</p><p>{court.hoop_count ? `${court.hoop_count} hoops` : 'Hoop count not verified'}</p><p className="fine">Counts show Runback check-ins, not everyone physically at the court. Posted hours may change for holidays and events.</p></section>
 
       <div className="panel">
         <p className="court-count big">{playersHere(count)}</p>

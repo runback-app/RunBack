@@ -47,6 +47,8 @@ export function useLoad<T>(loader: () => Promise<T>, deps: unknown[], refreshMs?
 
   useEffect(() => {
     setLoading(true);
+    setData(undefined);
+    setError(null);
     void reload();
   }, [reload]);
 

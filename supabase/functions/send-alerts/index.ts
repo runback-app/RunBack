@@ -37,16 +37,21 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return reply({ error: 'POST only' }, 405);
 
   let checkinId: unknown;
+  let notificationId: unknown;
   try {
-    checkinId = (await req.json())?.checkin_id;
+    const payload = await req.json();
+    checkinId = payload?.checkin_id;
+    notificationId = payload?.notification_id;
   } catch {
     return reply({ error: 'Send JSON with checkin_id' }, 400);
   }
-  if (typeof checkinId !== 'string' || !/^[0-9a-f-]{36}$/i.test(checkinId)) {
+  if ((typeof checkinId !== 'string' || !/^[0-9a-f-]{36}$/i.test(checkinId)) && (typeof notificationId !== 'string' || !/^[0-9a-f-]{36}$/i.test(notificationId))) {
     return reply({ error: 'Send JSON with checkin_id' }, 400);
   }
 
-  const { data, error } = await admin.rpc('alert_targets', { p_checkin_id: checkinId });
+  const { data, error } = typeof notificationId === 'string'
+    ? await admin.rpc('run_alert_targets', { p_notification_id: notificationId })
+    : await admin.rpc('alert_targets', { p_checkin_id: checkinId });
   if (error) {
     console.error('alert_targets failed', error.message);
     return reply({ error: 'Lookup failed' }, 500);

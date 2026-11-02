@@ -1,0 +1,26 @@
+import { supabase as db } from './supabase';
+import type { PlayerBrief } from './types';
+export type RSVP={user_id:string;status:'going'|'maybe'|'out';reminder:boolean;profiles:PlayerBrief|null};
+export type Run={id:string;crew_id:string;series_id:string|null;court_id:string;title:string;starts_at:string;duration_minutes:number;cancelled:boolean;run_rsvps:RSVP[]};
+export type Message={id:string;user_id:string;body:string;created_at:string;profiles:PlayerBrief|null};
+export type Notice={id:string;run_id:string;title:string;body:string;read_at:string|null};
+function check(e:{message:string}|null){if(e)throw new Error(e.message);}
+const runSelect='*,run_rsvps(user_id,status,reminder,profiles(display_name,avatar_url,position,skill,height_in))';
+export async function getRuns(crew:string){const {data,error}=await db.from('runs').select(runSelect).eq('crew_id',crew).gt('starts_at',new Date(Date.now()-4*3600000).toISOString()).order('starts_at').limit(100);check(error);return data as unknown as Run[];}
+export async function getRun(id:string){const {data,error}=await db.from('runs').select(runSelect).eq('id',id).maybeSingle();check(error);return data as unknown as Run|null;}
+export async function saveRSVP(run_id:string,user_id:string,status:RSVP['status'],reminder:boolean){const {error}=await db.from('run_rsvps').upsert({run_id,user_id,status,reminder,updated_at:new Date().toISOString()});check(error);}
+export async function getMessages(crew:string,run?:string){let q=db.from('crew_messages').select('id,user_id,body,created_at,profiles(display_name,avatar_url,position,skill,height_in)').eq('crew_id',crew);q=run?q.eq('run_id',run):q.is('run_id',null);const {data,error}=await q.order('created_at',{ascending:false}).limit(100);check(error);return (data as unknown as Message[]).reverse();}
+export async function sendMessage(crew_id:string,user_id:string,body:string,run_id?:string){body=body.trim();if(!body||body.length>1000)throw new Error('Write 1–1,000 characters.');const {error}=await db.from('crew_messages').insert({crew_id,run_id:run_id??null,user_id,body});check(error);}
+export async function removeMessage(id:string){const {error}=await db.from('crew_messages').delete().eq('id',id);check(error);}
+export async function getNotices(){const {data,error}=await db.from('run_notifications').select('id,run_id,title,body,read_at').order('created_at',{ascending:false}).limit(30);check(error);return data as Notice[];}
+export async function readNotice(id:string){const {error}=await db.from('run_notifications').update({read_at:new Date().toISOString()}).eq('id',id);check(error);}
+export function runTime(v:string){return new Intl.DateTimeFormat('en-US',{timeZone:'America/Phoenix',weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}).format(new Date(v));}
+export function tucsonISO(v:string){if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(v))throw new Error('Choose a date and time.');const d=new Date(v+':00-07:00');if(!Number.isFinite(d.getTime()))throw new Error('Choose a valid date.');return d.toISOString();}
+export function localRunTime(v:string){return new Date(new Date(v).getTime()-7*3600000).toISOString().slice(0,16);}
+export async function createRun(crew_id:string,title:string,court_id:string,when:string,duration_minutes:number,repeat:string,weekdays:number[]){const starts_at=tucsonISO(when);if(repeat!=='once'&&new Date(starts_at).getTime()>Date.now()+84*86400000)throw new Error('Start a recurring schedule within the next 12 weeks.');if(new Date(starts_at).getTime()<=Date.now())throw new Error('Pick a future time.');if(repeat==='once'){const {error}=await db.from('runs').insert({crew_id,title:title.trim(),court_id,starts_at,duration_minutes});check(error);}else{if(!weekdays.length)throw new Error('Choose at least one day.');const {error}=await db.from('run_series').insert({crew_id,title:title.trim(),court_id,starts_on:when.slice(0,10),local_time:when.slice(11),weekdays,timezone:'America/Phoenix',duration_minutes});check(error);}}
+export async function updateRun(id:string,changes:Partial<Pick<Run,'title'|'court_id'|'starts_at'|'cancelled'>>){const {error}=await db.from('runs').update(changes).eq('id',id);check(error);}
+export async function stopSeries(id:string){const {error}=await db.from('run_series').update({active:false}).eq('id',id);check(error);}
+export async function updateCrewSettings(id:string,changes:Record<string,unknown>){const {error}=await db.from('crews').update(changes).eq('id',id);check(error);}
+export async function removeMember(crew:string,user:string){const {error}=await db.from('crew_members').delete().eq('crew_id',crew).eq('user_id',user);check(error);}
+export async function crewPhotoUrl(path:string){const {data,error}=await db.storage.from('crew-photos').createSignedUrl(path,3600);check(error);return data!.signedUrl;}
+export async function uploadCrewPhoto(crew:string,blob:Blob){const path=`${crew}/${crypto.randomUUID()}.jpg`,bucket=db.storage.from('crew-photos');const {error}=await bucket.upload(path,blob,{contentType:'image/jpeg'});check(error);try{await updateCrewSettings(crew,{avatar_url:path});}catch(e){await bucket.remove([path]);throw e;}const {data}=await bucket.list(crew);const old=(data??[]).map(f=>`${crew}/${f.name}`).filter(p=>p!==path);if(old.length)await bucket.remove(old);return path;}

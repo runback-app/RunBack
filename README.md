@@ -2,7 +2,7 @@
 
 See who's at the court before you go. Check in at a Tucson court, see who's playing, build a crew you can invite with a text, and get an alert when a run starts.
 
-Live site: https://runback-tucson.vercel.app
+Live site: https://runback-dun.vercel.app
 
 ## What it does
 
@@ -11,6 +11,9 @@ Live site: https://runback-tucson.vercel.app
 - **Run meter:** ten spots (two teams of five) fill up as people check in.
 - **Player profiles:** photo, position, height, level, home court, and a short bio. Tap anyone to see their player card.
 - **Crews:** start a crew for your regular run, then text the invite link. The crew page shows which crewmates are playing right now.
+- **Planned runs:** leaders can schedule once, daily, or on selected weekdays in Tucson time. Each date has Going / Maybe / Can’t make it RSVPs and its own chat. Rolling 12-week schedules replenish daily.
+- **Crew chat and controls:** current members can chat; leaders can edit the crew, upload a private crew photo, remove members/messages, and replace invite links.
+- **Run updates:** optional 30-minute reminders plus change/cancellation notices appear in `/updates` and go to opted-in push devices.
 - **Your courts:** star a court to pin it to the top.
 - **Alerts:** get a phone or computer alert when someone in your crew checks in, or when one of your courts hits a number of players you pick. On iPhone, add the site to your Home Screen first (Apple's rule).
 
@@ -52,10 +55,18 @@ Other commands: `npm test` runs the tests, `npm run build` makes the production 
 ## To do
 
 - [ ] **Turn email confirmation back on.** It's off right now because Supabase's free email only sends to the project's team. To fix: buy a domain, set up an email service (Resend has a free tier), add it under Supabase > Authentication > SMTP, then turn **Confirm email** back on.
-- [ ] Password reset ("forgot password"), which also needs the email service above.
-- [ ] **Plan runs ahead:** post a time and court, people tap "I'm in", with a player cap and waitlist. (Every similar app has this.)
-- [ ] Court chat for coordinating a run.
+- [ ] Complete real inbox tests of signup confirmation and password reset after SMTP is configured. Reset UI, password matching, and show/hide controls are implemented.
+- [ ] Optional player caps and waitlists.
+- [x] Private crew chat and a separate chat for each scheduled run.
 - [ ] Check that people are actually near the court when they check in.
 - [ ] Let players suggest new courts.
 - [ ] Holiday and game-day hours (UA Rec changes hours for home games and breaks).
 - [ ] Phone app version, once people are using the website. Note: an iPhone app called "RunItBack" already exists, so the App Store name may need a tweak.
+
+## Scheduling migration and verification
+
+`20261102232712_runs_chat_crew_management.sql` adds schedules, per-date runs and RSVPs, crew/run chats, notifications, court detail fields, private crew photos, and role-based policies. Apply it before deploying the frontend and update `send-alerts` with the matching code. Recurring jobs are `runback-materialize-runs` and `runback-run-reminders`.
+
+Run `npm test` and `npm run build`. `supabase/tests/runs_chat_permissions.sql` exercises recurrence, RSVP impersonation prevention, member-only chats, leader-only changes/photos, reminders and cancellation notices in a rolled-back transaction. It needs one existing crew with two members. It does not retain test data or send pushes.
+
+In Supabase Auth URL Configuration, allow `https://runback-dun.vercel.app/reset-password` and set the Site URL to the live app. A custom SMTP sender is required before promising verification/reset email delivery to players outside the Supabase project team. Do not enable email confirmation until that sender is ready.

@@ -232,6 +232,7 @@ export function CheckInControl({ court, compact = false }: { court: Court; compa
   }
 
   function go(mins: number) {
+    if(court.closure_note&&(!court.closure_until||new Date(court.closure_until)>now)){setError(`Temporary closure: ${court.closure_note}`);return;}
     if (!status.open && !window.confirm(`${court.name} looks closed right now. Check in anyway?`)) return;
     void run(() => startCheckin(court.id, mins));
   }

@@ -1507,3 +1507,6 @@ main {
 .footer-links a {
   color: var(--muted);
 }
+
+/* Crew coordination */
+.run-list{display:grid;gap:1rem;margin-top:1rem}.run-list h3{margin:0}.chat-list{list-style:none;padding:0;max-height:28rem;overflow:auto;display:grid;gap:.75rem}.chat-list li{background:var(--surface,#fff);border:1px solid #deded4;border-radius:12px;padding:1rem}.chat-heading{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}.chat-heading time{font-size:.75rem;color:#697264}.chat-body{white-space:pre-wrap;overflow-wrap:anywhere;margin:.6rem 0}.crew-picture{width:96px;height:96px;object-fit:cover;border-radius:20px}.day-choices{display:flex;gap:1rem;flex-wrap:wrap}.day-choices label{display:flex;align-items:center;gap:.25rem}.notice{margin:1rem 0}.notice.unread{border-left:4px solid #d9512d}.notice a{text-decoration:none;color:inherit}details>summary{cursor:pointer;font-weight:700;padding:1rem 0}.subsection .switch-row{margin-top:1rem}.subsection .panel{margin-top:1rem}.field input[type=file]{max-width:100%}.topbar .nav{flex-wrap:wrap}@media(max-width:500px){.topbar .nav{gap:.6rem;font-size:.85rem}.form-actions .btn{flex-grow:1}}
