@@ -77,8 +77,9 @@ Deno.serve(async (req) => {
         sent++;
       } catch (err) {
         const status = (err as { statusCode?: number }).statusCode;
-        // 404/410 means the device turned alerts off or the app was removed. Forget it.
-        if (status === 404 || status === 410) gone.push(t.endpoint);
+        // 410 means the device turned alerts off or the app was removed, so forget it.
+        // 404 can be a brief hiccup right after someone turns alerts on, so just log it.
+        if (status === 410) gone.push(t.endpoint);
         else console.error('push failed', status, (err as Error).message);
       }
     }),
