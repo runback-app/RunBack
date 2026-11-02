@@ -1,5 +1,16 @@
 import { supabase } from './supabase';
-import type { Checkin, Court, CrewDetail, CrewPreview, CrewSummary, LiveCheckin } from './types';
+import type {
+  Checkin,
+  Court,
+  CrewDetail,
+  CrewPreview,
+  CrewSummary,
+  Favorite,
+  LiveCheckin,
+  Profile,
+} from './types';
+
+const BRIEF = 'display_name, avatar_url, position, skill, height_in';
 
 // Turns Supabase/Postgres errors into short messages people can act on.
 function fail(error: { message?: string } | null, fallback: string): never {
@@ -8,6 +19,8 @@ function fail(error: { message?: string } | null, fallback: string): never {
   if (/jwt|not signed in|sign in/i.test(raw)) throw new Error(raw.includes('Sign in') ? raw : 'Sign in to do that.');
   throw new Error(raw || fallback);
 }
+
+// ---------- Courts and check-ins ----------
 
 export async function fetchCourts(): Promise<Court[]> {
   const { data, error } = await supabase.from('courts').select('*').order('sort_order');
@@ -24,15 +37,16 @@ export async function fetchActivity(): Promise<Record<string, number>> {
   return counts;
 }
 
-/** Live check-ins with names. Only works when signed in. */
-export async function fetchLiveCheckins(courtId?: string): Promise<LiveCheckin[]> {
+/** Live check-ins with player info. Only works when signed in. */
+export async function fetchLiveCheckins(filter?: { courtId?: string; userId?: string }): Promise<LiveCheckin[]> {
   let query = supabase
     .from('checkins')
-    .select('id, court_id, user_id, created_at, expires_at, ended_at, profiles(display_name)')
+    .select(`id, court_id, user_id, created_at, expires_at, ended_at, profiles(${BRIEF})`)
     .is('ended_at', null)
     .gt('expires_at', new Date().toISOString())
-    .order('created_at');
-  if (courtId) query = query.eq('court_id', courtId);
+    .order('created_at', { ascending: false });
+  if (filter?.courtId) query = query.eq('court_id', filter.courtId);
+  if (filter?.userId) query = query.eq('user_id', filter.userId);
   const { data, error } = await query;
   if (error) fail(error, "Couldn't load who's here.");
   return data as unknown as LiveCheckin[];
@@ -41,7 +55,7 @@ export async function fetchLiveCheckins(courtId?: string): Promise<LiveCheckin[]
 export async function fetchMyCheckin(userId: string): Promise<Checkin | null> {
   const { data, error } = await supabase
     .from('checkins')
-    .select('*')
+    .select('id, court_id, user_id, created_at, expires_at, ended_at')
     .eq('user_id', userId)
     .is('ended_at', null)
     .gt('expires_at', new Date().toISOString())
@@ -63,6 +77,99 @@ export async function checkOut(): Promise<void> {
   if (error) fail(error, "Couldn't check you out.");
 }
 
+// ---------- Favorites ----------
+
+export async function fetchFavorites(): Promise<Favorite[]> {
+  const { data, error } = await supabase.from('court_favorites').select('court_id, alerts, alert_at');
+  if (error) fail(error, "Couldn't load your courts.");
+  return data as Favorite[];
+}
+
+export async function addFavorite(userId: string, courtId: string): Promise<void> {
+  const { error } = await supabase
+    .from('court_favorites')
+    .upsert({ user_id: userId, court_id: courtId }, { onConflict: 'user_id,court_id', ignoreDuplicates: true });
+  if (error) fail(error, "Couldn't save that court.");
+}
+
+export async function removeFavorite(userId: string, courtId: string): Promise<void> {
+  const { error } = await supabase.from('court_favorites').delete().eq('user_id', userId).eq('court_id', courtId);
+  if (error) fail(error, "Couldn't remove that court.");
+}
+
+export async function updateFavorite(
+  userId: string,
+  courtId: string,
+  changes: Partial<Pick<Favorite, 'alerts' | 'alert_at'>>,
+): Promise<void> {
+  const { error } = await supabase.from('court_favorites').update(changes).eq('user_id', userId).eq('court_id', courtId);
+  if (error) fail(error, "Couldn't save that alert.");
+}
+
+// ---------- Profiles ----------
+
+export async function fetchProfile(userId: string): Promise<Profile | null> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, display_name, position, skill, height_in, home_court_id, bio, avatar_url, notify_crew, created_at')
+    .eq('id', userId)
+    .maybeSingle();
+  if (error) {
+    if (/invalid input syntax for type uuid/i.test(error.message)) return null;
+    fail(error, "Couldn't load that player.");
+  }
+  return data as Profile | null;
+}
+
+export type ProfileChanges = Partial<
+  Pick<Profile, 'display_name' | 'position' | 'skill' | 'height_in' | 'home_court_id' | 'bio' | 'avatar_url' | 'notify_crew'>
+>;
+
+export async function updateProfile(userId: string, changes: ProfileChanges): Promise<void> {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ ...changes, updated_at: new Date().toISOString() })
+    .eq('id', userId);
+  if (error) {
+    if (/bio_check/i.test(error.message)) throw new Error('Keep your bio under 160 characters.');
+    if (/display_name_check/i.test(error.message)) throw new Error('Your name needs 1 to 40 characters.');
+    fail(error, "Couldn't save your profile.");
+  }
+}
+
+/** Uploads a new photo and returns its public link. Old photos are cleaned up. */
+export async function uploadAvatar(userId: string, photo: Blob): Promise<string> {
+  const path = `${userId}/${Date.now()}.jpg`;
+  const bucket = supabase.storage.from('avatars');
+  const { error } = await bucket.upload(path, photo, { contentType: 'image/jpeg', upsert: false, cacheControl: '31536000' });
+  if (error) fail(error, "Couldn't upload that photo.");
+
+  const { data: existing } = await bucket.list(userId);
+  const old = (existing ?? []).map((f) => `${userId}/${f.name}`).filter((p) => p !== path);
+  if (old.length) await bucket.remove(old);
+
+  return bucket.getPublicUrl(path).data.publicUrl;
+}
+
+// ---------- Alerts ----------
+
+export async function savePushSubscription(sub: PushSubscription): Promise<void> {
+  const json = sub.toJSON();
+  const { error } = await supabase.rpc('save_push_subscription', {
+    p_endpoint: json.endpoint,
+    p_p256dh: json.keys?.p256dh,
+    p_auth: json.keys?.auth,
+  });
+  if (error) fail(error, "Couldn't turn on alerts.");
+}
+
+export async function deletePushSubscription(endpoint: string): Promise<void> {
+  const { error } = await supabase.from('push_subscriptions').delete().eq('endpoint', endpoint);
+  if (error) fail(error, "Couldn't turn off alerts.");
+}
+
+// ---------- Crews ----------
+
 export async function fetchMyCrews(): Promise<CrewSummary[]> {
   const { data, error } = await supabase
     .from('crews')
@@ -75,7 +182,7 @@ export async function fetchMyCrews(): Promise<CrewSummary[]> {
 export async function fetchCrew(id: string): Promise<CrewDetail | null> {
   const { data, error } = await supabase
     .from('crews')
-    .select('*, courts(name, slug), crew_members(user_id, role, joined_at, profiles(display_name))')
+    .select(`*, courts(name, slug), crew_members(user_id, role, joined_at, profiles(${BRIEF}))`)
     .eq('id', id)
     .maybeSingle();
   if (error) {
@@ -119,9 +226,4 @@ export async function leaveCrew(crewId: string, userId: string): Promise<void> {
 export async function deleteCrew(crewId: string): Promise<void> {
   const { error } = await supabase.from('crews').delete().eq('id', crewId);
   if (error) fail(error, "Couldn't delete the crew.");
-}
-
-export async function updateDisplayName(userId: string, name: string): Promise<void> {
-  const { error } = await supabase.from('profiles').update({ display_name: name.trim() }).eq('id', userId);
-  if (error) fail(error, "Couldn't save your name.");
 }

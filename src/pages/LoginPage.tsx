@@ -58,7 +58,7 @@ export function LoginPage() {
 
   if (checkEmail) {
     return (
-      <section className="section narrow">
+      <section className="page narrow">
         <h1 className="page-title">Check your email</h1>
         <p>We sent a link to {email}. Open it to finish making your account.</p>
       </section>
@@ -66,7 +66,7 @@ export function LoginPage() {
   }
 
   return (
-    <section className="section narrow">
+    <section className="page narrow">
       <h1 className="page-title">{mode === 'signup' ? 'Create your account' : 'Sign in'}</h1>
       <form className="panel form" onSubmit={submit}>
         {mode === 'signup' && (

@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
-
-type Profile = { id: string; display_name: string };
+import { fetchProfile } from './lib/api';
+import type { Profile } from './lib/types';
 
 type AuthState = {
   ready: boolean;
@@ -56,8 +56,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(null);
       return;
     }
-    const { data } = await supabase.from('profiles').select('id, display_name').eq('id', userId).maybeSingle();
-    setProfile((data as Profile | null) ?? null);
+    try {
+      setProfile(await fetchProfile(userId));
+    } catch {
+      // Keep whatever we had; pages show their own errors.
+    }
   }, [userId]);
 
   useEffect(() => {

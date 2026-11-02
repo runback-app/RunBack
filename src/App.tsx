@@ -1,14 +1,15 @@
-import { NavLink, Route, Routes, Link } from 'react-router-dom';
+import { Link, NavLink, Route, Routes } from 'react-router-dom';
 import { useAuth } from './auth';
-import { MyStatusBar } from './components';
+import { Avatar, CourtIcon, CrewIcon, MyStatusBar, YouIcon } from './components';
 import { missingConfig } from './lib/supabase';
-import { AccountPage } from './pages/AccountPage';
 import { CourtPage } from './pages/CourtPage';
 import { CourtsPage } from './pages/CourtsPage';
 import { CrewPage } from './pages/CrewPage';
 import { CrewsPage } from './pages/CrewsPage';
 import { JoinPage } from './pages/JoinPage';
 import { LoginPage } from './pages/LoginPage';
+import { PlayerPage } from './pages/PlayerPage';
+import { ProfilePage } from './pages/ProfilePage';
 
 function Header() {
   const { userId, profile } = useAuth();
@@ -24,8 +25,8 @@ function Header() {
         </NavLink>
         <NavLink to="/crews">Crews</NavLink>
         {userId ? (
-          <NavLink to="/me" className="nav-me">
-            {profile?.display_name?.split(' ')[0] ?? 'You'}
+          <NavLink to="/me" className="nav-me" aria-label="Your profile">
+            <Avatar name={profile?.display_name} url={profile?.avatar_url} size={32} seed={userId} />
           </NavLink>
         ) : (
           <NavLink to="/login">Sign in</NavLink>
@@ -35,10 +36,31 @@ function Header() {
   );
 }
 
+/** Phone-style tab bar, only shown on small screens. */
+function TabBar() {
+  const { userId } = useAuth();
+  return (
+    <nav className="tabbar" aria-label="Tabs">
+      <NavLink to="/" end>
+        <CourtIcon />
+        <span>Courts</span>
+      </NavLink>
+      <NavLink to="/crews">
+        <CrewIcon />
+        <span>Crews</span>
+      </NavLink>
+      <NavLink to={userId ? '/me' : '/login'}>
+        <YouIcon />
+        <span>{userId ? 'You' : 'Sign in'}</span>
+      </NavLink>
+    </nav>
+  );
+}
+
 export function App() {
   if (missingConfig) {
     return (
-      <main className="section narrow">
+      <main className="page narrow">
         <h1 className="page-title">Runback isn't set up yet</h1>
         <p>
           The site is missing its database settings. Add <code>VITE_SUPABASE_URL</code> and{' '}
@@ -59,12 +81,13 @@ export function App() {
           <Route path="/crews" element={<CrewsPage />} />
           <Route path="/crew/:id" element={<CrewPage />} />
           <Route path="/join/:code" element={<JoinPage />} />
+          <Route path="/player/:id" element={<PlayerPage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/me" element={<AccountPage />} />
+          <Route path="/me" element={<ProfilePage />} />
           <Route
             path="*"
             element={
-              <section className="section narrow">
+              <section className="page narrow">
                 <h1 className="page-title">Page not found</h1>
                 <p>
                   <Link to="/">See courts</Link>
@@ -75,6 +98,7 @@ export function App() {
         </Routes>
       </main>
       <footer className="footer">Built in Tucson for people who show up.</footer>
+      <TabBar />
     </div>
   );
 }

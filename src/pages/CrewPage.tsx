@@ -3,26 +3,25 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth';
 import { usePlay } from '../data';
 import { useLoad, useNow } from '../hooks';
-import { deleteCrew, fetchCrew, fetchLiveCheckins, leaveCrew } from '../lib/api';
+import { deleteCrew, fetchCrew, leaveCrew } from '../lib/api';
 import { inviteUrl, smsHref } from '../lib/invite';
 import { isLive, timeLeft } from '../lib/time';
-import { ErrorNote, Loading } from '../components';
+import { ErrorNote, Loading, PlayerRow } from '../components';
 
 export function CrewPage() {
   const { id = '' } = useParams();
   const [params] = useSearchParams();
   const { userId, ready } = useAuth();
-  const { courts, myCheckin } = usePlay();
+  const { courts, live } = usePlay();
   const navigate = useNavigate();
   const now = useNow();
   const crew = useLoad(() => (userId ? fetchCrew(id) : Promise.resolve(null)), [id, userId]);
-  const live = useLoad(() => (userId ? fetchLiveCheckins() : Promise.resolve([])), [userId, myCheckin?.id], 30000);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (ready && !userId) {
     return (
-      <section className="section narrow">
+      <section className="page narrow">
         <h1 className="page-title">Sign in to see this crew</h1>
         <p>
           <Link className="btn btn-primary" to={`/login?next=/crew/${id}`}>
@@ -36,7 +35,7 @@ export function CrewPage() {
   if (crew.error) return <ErrorNote>{crew.error}</ErrorNote>;
   if (!crew.data) {
     return (
-      <section className="section narrow">
+      <section className="page narrow">
         <h1 className="page-title">Crew not found</h1>
         <p className="muted">It may have been deleted, or you're not in it. Ask for a new invite link.</p>
         <p>
@@ -49,7 +48,7 @@ export function CrewPage() {
   const c = crew.data;
   const isOwner = c.created_by === userId;
   const memberIds = new Set(c.crew_members.map((m) => m.user_id));
-  const playingNow = (live.data ?? []).filter((ch) => memberIds.has(ch.user_id) && isLive(ch, now));
+  const playingNow = live.filter((ch) => memberIds.has(ch.user_id) && isLive(ch, now));
   const courtName = (courtId: string) => courts.find((ct) => ct.id === courtId)?.name ?? 'a court';
   const courtSlug = (courtId: string) => courts.find((ct) => ct.id === courtId)?.slug;
   const members = [...c.crew_members].sort((a, b) =>
@@ -68,7 +67,7 @@ export function CrewPage() {
   }
 
   return (
-    <article className="section narrow">
+    <article className="page narrow">
       <p className="crumb">
         <Link to="/crews">Your crews</Link>
       </p>
@@ -84,19 +83,23 @@ export function CrewPage() {
         {playingNow.length === 0 ? (
           <p className="muted">Nobody from the crew is checked in.</p>
         ) : (
-          <ul className="people">
+          <ul className="players card-list">
             {playingNow.map((ch) => {
               const slug = courtSlug(ch.court_id);
               return (
-                <li key={ch.id}>
-                  <span className="person-name">
-                    <span className="live-dot" aria-hidden="true" /> {ch.profiles?.display_name ?? 'Player'}
-                  </span>
-                  <span className="person-time">
-                    at {slug ? <Link to={`/court/${slug}`}>{courtName(ch.court_id)}</Link> : courtName(ch.court_id)},{' '}
-                    {timeLeft(ch.expires_at, now)}
-                  </span>
-                </li>
+                <PlayerRow
+                  key={ch.id}
+                  userId={ch.user_id}
+                  profile={ch.profiles}
+                  you={ch.user_id === userId}
+                  detail={
+                    <>
+                      <span className="live-dot" aria-hidden="true" />{' '}
+                      {slug ? <Link to={`/court/${slug}`}>{courtName(ch.court_id)}</Link> : courtName(ch.court_id)}
+                      <span className="muted">, {timeLeft(ch.expires_at, now)}</span>
+                    </>
+                  }
+                />
               );
             })}
           </ul>
@@ -105,15 +108,15 @@ export function CrewPage() {
 
       <section className="subsection">
         <h2>{members.length === 1 ? '1 player' : `${members.length} players`}</h2>
-        <ul className="people">
+        <ul className="players card-list">
           {members.map((m) => (
-            <li key={m.user_id}>
-              <span className="person-name">
-                {m.profiles?.display_name ?? 'Player'}
-                {m.user_id === userId && <span className="you"> (you)</span>}
-              </span>
-              <span className="person-time">{m.role === 'owner' ? 'Started the crew' : ''}</span>
-            </li>
+            <PlayerRow
+              key={m.user_id}
+              userId={m.user_id}
+              profile={m.profiles}
+              you={m.user_id === userId}
+              detail={m.role === 'owner' ? <span className="muted">Started the crew</span> : undefined}
+            />
           ))}
         </ul>
       </section>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clockTime, isLive, timeLeft } from './time';
+import { clockTime, isLive, timeAgo, timeLeft } from './time';
 
 const now = new Date('2026-11-02T21:00:00Z'); // 2:00 PM in Tucson
 const plus = (minutes: number) => new Date(now.getTime() + minutes * 60000).toISOString();
@@ -23,6 +23,14 @@ describe('timeLeft', () => {
   it('handles expired check-ins', () => {
     expect(timeLeft(plus(0), now)).toBe('ending now');
     expect(timeLeft(plus(-5), now)).toBe('ending now');
+  });
+});
+
+describe('timeAgo', () => {
+  it('reads naturally', () => {
+    expect(timeAgo(plus(-0.5), now)).toBe('just now');
+    expect(timeAgo(plus(-12), now)).toBe('12 min ago');
+    expect(timeAgo(plus(-130), now)).toBe('2h ago');
   });
 });
 

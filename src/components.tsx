@@ -3,9 +3,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from './auth';
 import { usePlay } from './data';
 import { courtStatus, type CourtStatus } from './lib/hours';
+import { avatarColor, initials, playerSummary } from './lib/profile';
 import { FULL_RUN, runMeter } from './lib/run';
 import { CHECKIN_OPTIONS, DEFAULT_CHECKIN_MINUTES, timeLeft } from './lib/time';
-import type { Court } from './lib/types';
+import type { Court, PlayerBrief } from './lib/types';
 import { useNow } from './hooks';
 
 /** Ten spots split into two teams of five. Filled spots are players checked in. */
@@ -46,6 +47,104 @@ export function Loading({ label = 'Loading' }: { label?: string }) {
     <p className="loading" aria-live="polite">
       {label}…
     </p>
+  );
+}
+
+/** Photo if the player has one, otherwise their initials on a color. */
+export function Avatar({
+  name,
+  url,
+  size = 40,
+  seed,
+}: {
+  name: string | null | undefined;
+  url?: string | null;
+  size?: number;
+  seed?: string;
+}) {
+  const style = { width: size, height: size, fontSize: Math.round(size * 0.38) };
+  if (url) {
+    return <img className="avatar" src={url} alt="" width={size} height={size} style={style} loading="lazy" />;
+  }
+  return (
+    <span className="avatar avatar-initials" style={{ ...style, background: avatarColor(seed ?? name ?? '') }} aria-hidden="true">
+      {initials(name)}
+    </span>
+  );
+}
+
+/** Overlapping faces of who's at a court. */
+export function AvatarStack({ people, max = 5 }: { people: { id: string; profile: PlayerBrief | null }[]; max?: number }) {
+  if (people.length === 0) return null;
+  const shown = people.slice(0, max);
+  const extra = people.length - shown.length;
+  return (
+    <span className="stack" aria-label={people.map((p) => p.profile?.display_name ?? 'Player').join(', ')}>
+      {shown.map((p) => (
+        <Avatar key={p.id} name={p.profile?.display_name} url={p.profile?.avatar_url} size={30} seed={p.id} />
+      ))}
+      {extra > 0 && <span className="stack-more">+{extra}</span>}
+    </span>
+  );
+}
+
+/** One player in a list: face, name, and their position/height/level. */
+export function PlayerRow({
+  userId,
+  profile,
+  you,
+  detail,
+}: {
+  userId: string;
+  profile: PlayerBrief | null;
+  you?: boolean;
+  detail?: ReactNode;
+}) {
+  const summary = profile ? playerSummary(profile) : '';
+  return (
+    <li className="player-row">
+      <Link to={`/player/${userId}`} className="player-link">
+        <Avatar name={profile?.display_name} url={profile?.avatar_url} size={44} seed={userId} />
+        <span className="player-text">
+          <span className="player-name">
+            {profile?.display_name ?? 'Player'}
+            {you && <span className="you"> (you)</span>}
+          </span>
+          {summary && <span className="player-sub">{summary}</span>}
+        </span>
+      </Link>
+      {detail && <span className="player-detail">{detail}</span>}
+    </li>
+  );
+}
+
+/** Star a court to keep it at the top and get alerts for it. */
+export function FavoriteButton({ court }: { court: Court }) {
+  const { userId } = useAuth();
+  const { isFavorite, setFavorite } = usePlay();
+  const [busy, setBusy] = useState(false);
+  if (!userId) return null;
+  const on = isFavorite(court.id);
+  return (
+    <button
+      className={on ? 'star on' : 'star'}
+      aria-pressed={on}
+      aria-label={on ? `Remove ${court.name} from your courts` : `Add ${court.name} to your courts`}
+      title={on ? 'In your courts' : 'Add to your courts'}
+      disabled={busy}
+      onClick={async () => {
+        setBusy(true);
+        try {
+          await setFavorite(court.id, !on);
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+        <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />
+      </svg>
+    </button>
   );
 }
 
@@ -137,10 +236,7 @@ export function CheckInControl({ court, compact = false }: { court: Court; compa
     void run(() => startCheckin(court.id, mins));
   }
 
-  const label = (mins: number) => {
-    const option = CHECKIN_OPTIONS.find((o) => o.minutes === mins)?.label ?? `${mins} min`;
-    return elsewhere ? `Move here for ${option}` : `Check in for ${option}`;
-  };
+  const optionLabel = (mins: number) => CHECKIN_OPTIONS.find((o) => o.minutes === mins)?.label ?? `${mins} min`;
 
   if (compact) {
     if (here) {
@@ -163,7 +259,7 @@ export function CheckInControl({ court, compact = false }: { court: Court; compa
           <span className="live-dot" aria-hidden="true" /> You're checked in here, {timeLeft(myCheckin!.expires_at, now)}.
         </p>
       )}
-      <fieldset className="segmented" aria-label="How long are you playing?">
+      <fieldset className="segmented">
         <legend>{here ? 'Still here? Reset your time' : 'How long are you playing?'}</legend>
         {CHECKIN_OPTIONS.map((option) => (
           <label key={option.minutes} className={minutes === option.minutes ? 'seg on' : 'seg'}>
@@ -180,7 +276,13 @@ export function CheckInControl({ court, compact = false }: { court: Court; compa
       </fieldset>
       <div className="checkin-actions">
         <button className="btn btn-primary" disabled={busy} onClick={() => go(minutes)}>
-          {busy ? 'Saving…' : here ? `Reset to ${CHECKIN_OPTIONS.find((o) => o.minutes === minutes)?.label}` : label(minutes)}
+          {busy
+            ? 'Saving…'
+            : here
+              ? `Reset to ${optionLabel(minutes)}`
+              : elsewhere
+                ? `Move here for ${optionLabel(minutes)}`
+                : `Check in for ${optionLabel(minutes)}`}
         </button>
         {here && (
           <button className="btn btn-quiet" disabled={busy} onClick={() => void run(endCheckin)}>
@@ -190,5 +292,36 @@ export function CheckInControl({ court, compact = false }: { court: Court; compa
       </div>
       {error && <ErrorNote>{error}</ErrorNote>}
     </div>
+  );
+}
+
+/* ---------- Icons for the tab bar ---------- */
+export function CourtIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M12 4v16M3 9h3v6H3M21 9h-3v6h3" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+export function CrewIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="9" cy="8" r="3.2" />
+      <path d="M3 19c.6-3.4 3-5.2 6-5.2s5.4 1.8 6 5.2" />
+      <circle cx="17" cy="9" r="2.4" />
+      <path d="M16.5 13.9c2.4.2 4 1.7 4.5 4.6" />
+    </svg>
+  );
+}
+
+export function YouIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="12" cy="8" r="3.6" />
+      <path d="M4.5 20c.8-4 3.7-6.2 7.5-6.2s6.7 2.2 7.5 6.2" />
+    </svg>
   );
 }

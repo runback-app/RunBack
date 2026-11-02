@@ -21,6 +21,15 @@ export function timeLeft(expiresAt: string | Date, now: Date): string {
   return m === 0 ? `${h}h left` : `${h}h ${m}m left`;
 }
 
+/** "just now", "12 min ago", "2h ago" */
+export function timeAgo(value: string | Date, now: Date): string {
+  const then = typeof value === 'string' ? new Date(value) : value;
+  const minutes = Math.floor((now.getTime() - then.getTime()) / 60000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  return `${Math.floor(minutes / 60)}h ago`;
+}
+
 /** "6:12 PM" in Tucson time */
 export function clockTime(value: string | Date): string {
   const date = typeof value === 'string' ? new Date(value) : value;

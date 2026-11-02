@@ -21,7 +21,7 @@ export function JoinPage() {
   const crew = preview.data;
   if (!code || !crew) {
     return (
-      <section className="section narrow">
+      <section className="page narrow">
         <h1 className="page-title">This invite doesn't work</h1>
         <p className="muted">The crew may have been deleted. Ask whoever sent it for a new link.</p>
         <p>
@@ -34,7 +34,7 @@ export function JoinPage() {
   const next = `/join/${code}`;
 
   return (
-    <section className="section narrow">
+    <section className="page narrow">
       <div className="panel join-card">
         <p className="muted">You're invited to run with</p>
         <h1 className="page-title">{crew.name}</h1>

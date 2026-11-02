@@ -12,7 +12,7 @@ export function CrewsPage() {
 
   if (ready && !userId) {
     return (
-      <section className="section narrow">
+      <section className="page narrow">
         <h1 className="page-title">Crews</h1>
         <p>A crew is a group that runs together on a regular day. Start one, then text the invite link to your people.</p>
         <p>
@@ -35,7 +35,7 @@ function MyCrews() {
   const [creating, setCreating] = useState(false);
 
   return (
-    <section className="section narrow">
+    <section className="page narrow">
       <div className="section-head">
         <h1 className="page-title">Your crews</h1>
         {!creating && (
