@@ -151,6 +151,30 @@ export async function uploadAvatar(userId: string, photo: Blob): Promise<string>
   return bucket.getPublicUrl(path).data.publicUrl;
 }
 
+/**
+ * Deletes the signed-in player's account and everything tied to it.
+ * Photos live in file storage, so they're removed first; the database handles the rest.
+ */
+export async function deleteMyAccount(userId: string): Promise<void> {
+  const bucket = supabase.storage.from('avatars');
+  const { data: files } = await bucket.list(userId);
+  const paths = (files ?? []).map((f) => `${userId}/${f.name}`);
+  if (paths.length) {
+    const { error: removeError } = await bucket.remove(paths);
+    if (removeError) fail(removeError, "Couldn't remove your photo. Try again.");
+  }
+  const { error } = await supabase.rpc('delete_my_account');
+  if (error) fail(error, "Couldn't delete your account. Try again.");
+}
+
+export async function sendFeedback(userId: string, message: string, page: string): Promise<void> {
+  const { error } = await supabase.from('feedback').insert({ user_id: userId, message: message.trim(), page });
+  if (error) {
+    if (/feedback_message_check/i.test(error.message)) throw new Error('Messages need 1 to 2,000 characters.');
+    fail(error, "Couldn't send that. Try again.");
+  }
+}
+
 // ---------- Alerts ----------
 
 export async function savePushSubscription(sub: PushSubscription): Promise<void> {

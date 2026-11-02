@@ -1,5 +1,8 @@
 import { Link, NavLink, Route, Routes } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { useAuth } from './auth';
+import { cleanPageUrl } from './lib/analytics';
+import { PrivacyPage } from './pages/PrivacyPage';
 import { Avatar, CourtIcon, CrewIcon, MyStatusBar, YouIcon } from './components';
 import { missingConfig } from './lib/supabase';
 import { CourtPage } from './pages/CourtPage';
@@ -84,6 +87,7 @@ export function App() {
           <Route path="/player/:id" element={<PlayerPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/me" element={<ProfilePage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
           <Route
             path="*"
             element={
@@ -97,8 +101,15 @@ export function App() {
           />
         </Routes>
       </main>
-      <footer className="footer">Built in Tucson for people who show up.</footer>
+      <footer className="footer">
+        <span>Built in Tucson for people who show up.</span>
+        <span className="footer-links">
+          <Link to="/privacy">Privacy</Link>
+          <Link to="/privacy#contact">Send feedback</Link>
+        </span>
+      </footer>
       <TabBar />
+      <Analytics beforeSend={(event) => ({ ...event, url: cleanPageUrl(event.url) })} />
     </div>
   );
 }

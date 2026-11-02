@@ -101,6 +101,11 @@ export function LoginPage() {
         <button className="btn btn-primary btn-block" type="submit" disabled={busy}>
           {busy ? 'One sec…' : mode === 'signup' ? 'Create account' : 'Sign in'}
         </button>
+        {mode === 'signup' && (
+          <p className="fine">
+            You need to be 13 or older. See <Link to="/privacy">how we handle your info</Link>.
+          </p>
+        )}
       </form>
       <p className="switch">
         {mode === 'signup' ? (

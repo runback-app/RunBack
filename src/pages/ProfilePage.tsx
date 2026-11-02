@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { usePlay } from '../data';
 import { currentSubscription, showTestAlert, turnOffAlerts, turnOnAlerts } from '../alerts';
-import { updateProfile, uploadAvatar } from '../lib/api';
+import { deleteMyAccount, updateProfile, uploadAvatar } from '../lib/api';
 import { squarePhoto } from '../lib/image';
 import { POSITIONS, SKILLS } from '../lib/profile';
 import { currentAlertSupport } from '../lib/push';
@@ -38,7 +38,81 @@ export function ProfilePage() {
       <ProfileForm />
       <AlertSettings />
       <SignOut />
+      <DeleteAccount />
     </div>
+  );
+}
+
+function DeleteAccount() {
+  const { userId, signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [open, setOpen] = useState(false);
+  const [typed, setTyped] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const section = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (location.hash === '#delete') {
+      setOpen(true);
+      section.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [location.hash]);
+
+  if (!userId) return null;
+
+  async function remove() {
+    if (!userId) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await turnOffAlerts().catch(() => undefined);
+      await deleteMyAccount(userId);
+      await signOut();
+      navigate('/?deleted=1', { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Try again.');
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="danger-panel" id="delete" ref={section}>
+      {!open ? (
+        <button className="link-button danger-link" onClick={() => setOpen(true)}>
+          Delete account
+        </button>
+      ) : (
+        <div className="panel danger-box">
+          <h2>Delete your account?</h2>
+          <p>
+            This removes your profile, photo, check-ins, starred courts, alerts, and crew memberships. Crews you started
+            are deleted for everyone in them. This can't be undone.
+          </p>
+          <label className="field">
+            <span>Type DELETE to confirm</span>
+            <input value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />
+          </label>
+          {error && <ErrorNote>{error}</ErrorNote>}
+          <div className="form-actions">
+            <button className="btn btn-danger" disabled={busy || typed.trim().toUpperCase() !== 'DELETE'} onClick={remove}>
+              {busy ? 'Deleting…' : 'Delete my account'}
+            </button>
+            <button
+              className="btn btn-quiet"
+              disabled={busy}
+              onClick={() => {
+                setOpen(false);
+                setTyped('');
+              }}
+            >
+              Keep my account
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 

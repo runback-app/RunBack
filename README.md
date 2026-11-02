@@ -16,6 +16,14 @@ Live site: https://runback-tucson.vercel.app
 
 Signed-out visitors see courts, hours, and player counts. Names, photos, and profiles are only visible to signed-in players.
 
+## Privacy and feedback
+
+- The privacy page is at `/privacy` (`src/pages/PrivacyPage.tsx`). Update it when the app starts collecting something new.
+- Players can delete their account from their profile. That removes everything tied to them.
+- Check-in history is deleted after 30 days by a daily database job (`delete-old-checkins`).
+- Messages from the "Send feedback" form land in the `feedback` table in Supabase (Table Editor > feedback).
+- Page views are counted with Vercel Web Analytics (no cookies). Invite codes and ids are stripped from page addresses before they're counted.
+
 ## How it's built
 
 | Part | What we use |
@@ -24,6 +32,7 @@ Signed-out visitors see courts, hours, and player counts. Names, photos, and pro
 | Backend | Supabase: database, accounts, photo storage, security rules. Setup is in `supabase/migrations/` |
 | Alerts | Web push. `supabase/functions/send-alerts` sends them; the database decides who gets one (`alert_targets`) |
 | Map | Leaflet with OpenStreetMap tiles |
+| Usage stats | Vercel Web Analytics |
 | Hosting | Vercel. Every push to `main` deploys automatically |
 | Checks | GitHub Actions runs type checks, tests, and a build on every push |
 

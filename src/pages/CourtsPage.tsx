@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { usePlay } from '../data';
 import { useNow } from '../hooks';
@@ -17,6 +17,8 @@ export function CourtsPage() {
   const { courts, courtsError, courtsLoading, activity, live, isFavorite } = usePlay();
   const now = useNow();
   const [filter, setFilter] = useState<Filter>('all');
+  const [params] = useSearchParams();
+  const justDeleted = params.get('deleted') === '1';
 
   const total = Object.values(activity).reduce((sum, n) => sum + n, 0);
   const shown = courts.filter((c) => filter === 'all' || c.kind === filter);
@@ -27,6 +29,11 @@ export function CourtsPage() {
 
   return (
     <div className="page">
+      {justDeleted && (
+        <p className="notice" role="status">
+          Your account and everything tied to it has been deleted.
+        </p>
+      )}
       <header className="home-head">
         <h1 className="page-title">Who's playing</h1>
         <p className="live-line">
