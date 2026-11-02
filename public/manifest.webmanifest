@@ -1,0 +1,10 @@
+{
+  "name": "Runback",
+  "short_name": "Runback",
+  "description": "See who's at the court before you go.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#EEF1EC",
+  "theme_color": "#2E6B4E",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
