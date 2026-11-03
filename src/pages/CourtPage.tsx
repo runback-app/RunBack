@@ -8,6 +8,7 @@ import { playersHere } from '../lib/run';
 import { clockTime, isLive } from '../lib/time';
 import type { Court } from '../lib/types';
 import { CheckInControl, ErrorNote, FavoriteButton, Loading, PlayerRow, RunMeter, StatusPill } from '../components';
+import { CourtChat } from '../CourtChat';
 
 const CourtMap = lazy(() => import('../CourtMap'));
 
@@ -82,6 +83,8 @@ export function CourtPage() {
           </ul>
         )}
       </section>
+
+      <CourtChat courtId={court.id} courtName={court.name} />
 
       {userId && <CourtAlerts court={court} />}
 
