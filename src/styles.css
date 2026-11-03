@@ -1,11 +1,11 @@
 /* ---------- Tokens ---------- */
 :root {
-  --bg: #eef1ec;          /* sun-bleached concrete */
+  --bg: #f5f6f3;          /* sun-bleached concrete */
   --surface: #ffffff;
   --surface-2: #f6f8f5;
   --ink: #17201b;
   --muted: #56625b;
-  --line: #d6ddd7;
+  --line: #e1e5df;
   --court: #2e6b4e;       /* painted outdoor court green */
   --court-deep: #24563e;
   --court-soft: #dcebe2;
@@ -31,30 +31,7 @@
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #101612;
-    --surface: #17201b;
-    --surface-2: #1c2620;
-    --ink: #e7eee9;
-    --muted: #a0aca5;
-    --line: #2a3630;
-    --court: #2f7353;
-    --court-deep: #275f45;
-    --court-soft: #1f3a2c;
-    --ball: #f2852f;
-    --ball-soft: #3a2a1d;
-    --open-bg: #1f3a2c;
-    --open-ink: #9fd8b8;
-    --closing-bg: #3a2a1d;
-    --closing-ink: #ffb877;
-    --closed-bg: #222b26;
-    --closed-ink: #a0aca5;
-    --danger: #ff8a80;
-    --link: #8fd1ad;
-    color-scheme: dark;
-  }
-}
+/* Light only for now (the "clean list" design, Nov 2026). A dark theme could come back as a setting. */
 
 /* ---------- Base ---------- */
 *,
@@ -82,14 +59,15 @@ a {
   text-underline-offset: 3px;
 }
 
+/* The bold display font is only for the wordmark. Headings use the body font. */
 h1,
 h2,
 h3 {
-  font-family: var(--display);
-  font-weight: 800;
-  line-height: 1.05;
+  font-family: var(--body);
+  font-weight: 700;
+  line-height: 1.2;
   margin: 0;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
 }
 
 p {
@@ -281,11 +259,6 @@ main {
   }
 }
 
-@media (max-width: 719px) and (prefers-color-scheme: dark) {
-  .tabbar a.active {
-    color: var(--link);
-  }
-}
 
 /* ---------- My check-in bar ---------- */
 .mybar {
@@ -357,7 +330,7 @@ main {
 }
 
 .page-title {
-  font-size: clamp(38px, 8vw, 56px);
+  font-size: clamp(26px, 6vw, 34px);
   margin-bottom: 4px;
 }
 
@@ -668,7 +641,7 @@ main {
 }
 
 .court-name {
-  font-family: var(--display);
+  font-family: var(--body);
   font-weight: 800;
   font-size: 32px;
   line-height: 1;
@@ -699,7 +672,7 @@ main {
 }
 
 .court-count-num {
-  font-family: var(--display);
+  font-family: var(--body);
   font-weight: 800;
   font-size: 40px;
   line-height: 0.95;
@@ -734,7 +707,7 @@ main {
 }
 
 .court-count.big {
-  font-family: var(--display);
+  font-family: var(--body);
   font-size: 36px;
   line-height: 1;
 }
@@ -1003,7 +976,7 @@ main {
 
 .fact dd {
   margin: 2px 0 0;
-  font-family: var(--display);
+  font-family: var(--body);
   font-weight: 800;
   font-size: 24px;
   line-height: 1.1;
@@ -1391,7 +1364,7 @@ main {
 }
 
 .crew-name {
-  font-family: var(--display);
+  font-family: var(--body);
   font-weight: 800;
   font-size: 28px;
   line-height: 1.05;
@@ -1510,3 +1483,159 @@ main {
 
 /* Crew coordination */
 .run-list{display:grid;gap:1rem;margin-top:1rem}.run-list h3{margin:0}.chat-list{list-style:none;padding:0;max-height:28rem;overflow:auto;display:grid;gap:.75rem}.chat-list li{background:var(--surface,#fff);border:1px solid #deded4;border-radius:12px;padding:1rem}.chat-heading{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}.chat-heading time{font-size:.75rem;color:#697264}.chat-body{white-space:pre-wrap;overflow-wrap:anywhere;margin:.6rem 0}.crew-picture{width:96px;height:96px;object-fit:cover;border-radius:20px}.day-choices{display:flex;gap:1rem;flex-wrap:wrap}.day-choices label{display:flex;align-items:center;gap:.25rem}.notice{margin:1rem 0}.notice.unread{border-left:4px solid #d9512d}.notice a{text-decoration:none;color:inherit}details>summary{cursor:pointer;font-weight:700;padding:1rem 0}.subsection .switch-row{margin-top:1rem}.subsection .panel{margin-top:1rem}.field input[type=file]{max-width:100%}.topbar .nav{flex-wrap:wrap}@media(max-width:500px){.topbar .nav{gap:.6rem;font-size:.85rem}.form-actions .btn{flex-grow:1}}
+
+/* ---------- Home: clean list (Nov 2026 redesign, option A) ---------- */
+.home .home-head {
+  margin: 8px 0 14px;
+}
+
+.home-sub {
+  margin: 4px 0 0;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.seg {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 16px;
+  background: #e7eae5;
+  border-radius: 12px;
+  max-width: 420px;
+}
+
+.seg-btn {
+  flex: 1;
+  min-height: 40px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font: 700 15px var(--body);
+  cursor: pointer;
+}
+
+.seg-btn.on {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(23, 32, 27, 0.12);
+}
+
+.list-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 20px 0 8px;
+}
+
+.court-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.court-list li + li {
+  border-top: 1px solid #edf0eb;
+}
+
+.court-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  min-height: 64px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.court-row:hover {
+  background: var(--surface-2);
+}
+
+.court-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.court-row-name {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.court-row-meta {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.status-closing {
+  color: var(--closing-ink);
+}
+
+.status-closed {
+  color: var(--closed-ink);
+}
+
+.count-pill {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--ball-soft);
+  color: var(--closing-ink);
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.count-pill .live-dot {
+  width: 8px;
+  height: 8px;
+}
+
+.count-empty {
+  flex: none;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.court-row .chev {
+  flex: none;
+  color: #9aa59f;
+}
+
+.join-strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--court-soft);
+}
+
+.join-strip p {
+  flex: 1;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--open-ink);
+}
+
+/* Calmer section headings to match the cleaner home screen. */
+.subsection > h2,
+.panel > h2 {
+  font-size: 20px;
+}

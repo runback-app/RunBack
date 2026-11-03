@@ -16,7 +16,8 @@ function escapeHtml(text: string): string {
 }
 
 function prefersDark(): boolean {
-  return typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+  // The app is light only for now, so the map stays light too.
+  return false;
 }
 
 /** Map of courts. Each pin shows how many people are checked in. Tapping a pin opens the court. */
