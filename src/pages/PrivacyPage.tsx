@@ -36,6 +36,9 @@ export function PrivacyPage() {
           <strong>Crews and runs:</strong> crews you start or join, planned runs, RSVPs, reminders, crew photos, and messages you post.
         </li>
         <li>
+          <strong>Court chat:</strong> messages you post in a court's chat, and messages you report.
+        </li>
+        <li>
           <strong>Alerts:</strong> your starred courts and alert settings. If you turn on alerts, we store a device
           address so we can send them.
         </li>
@@ -54,7 +57,8 @@ export function PrivacyPage() {
           <strong>Anyone:</strong> courts, hours, and how many people are checked in. No names.
         </li>
         <li>
-          <strong>Signed-in players:</strong> your name, photo, profile, and the court you're checked in at right now.
+          <strong>Signed-in players:</strong> your name, photo, profile, the court you're checked in at right now, and
+          anything you post in a court chat. Who reported a message is never shown.
         </li>
         <li>
           <strong>Your crews:</strong> who's in the crew and its invite link. Anyone with the link can join, so only
@@ -65,6 +69,7 @@ export function PrivacyPage() {
       <h2>How long we keep it</h2>
       <ul>
         <li>Check-ins leave the app when your time runs out. The history is deleted after 30 days.</li>
+        <li>Court chat messages are deleted after 24 hours. A message reported by 3 players is hidden right away.</li>
         <li>Chat messages and run details stay until removed or the crew is deleted. Your messages and RSVPs are deleted when you delete your account.</li>
       </ul>
 
