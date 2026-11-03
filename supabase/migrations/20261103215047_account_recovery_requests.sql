@@ -16,7 +16,15 @@ revoke all on public.account_recovery_requests from public, anon, authenticated;
 grant insert (display_name, contact_email, details) on public.account_recovery_requests to anon, authenticated;
 grant all on public.account_recovery_requests to service_role;
 create policy "Anyone can request manual account recovery"
-  on public.account_recovery_requests for insert to anon, authenticated with check (true);
+  on public.account_recovery_requests for insert to anon, authenticated
+  with check (
+    created_at = now()
+    and char_length(trim(display_name)) between 1 and 80
+    and char_length(trim(details)) between 10 and 1000
+    and char_length(contact_email) <= 254
+    and contact_email = lower(trim(contact_email))
+    and contact_email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'
+  );
 
 -- The private trigger can count inbox rows while callers cannot read them.
 -- Serialize this small inbox to enforce limits even for concurrent requests.
