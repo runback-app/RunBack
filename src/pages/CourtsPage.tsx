@@ -6,74 +6,88 @@ import { useNow } from '../hooks';
 import { courtStatus } from '../lib/hours';
 import { isLive, timeAgo } from '../lib/time';
 import type { Court } from '../lib/types';
-import { AvatarStack, CheckInControl, ErrorNote, FavoriteButton, Loading, PlayerRow, RunMeter, StatusPill } from '../components';
+import { ErrorNote, Loading, PlayerRow } from '../components';
 
 const CourtMap = lazy(() => import('../CourtMap'));
 
-type Filter = 'all' | 'indoor' | 'outdoor';
+type View = 'list' | 'map';
 
+/** Home: a clean list of courts with live player counts. The map sits behind a List/Map switch. */
 export function CourtsPage() {
   const { userId } = useAuth();
   const { courts, courtsError, courtsLoading, activity, live, isFavorite } = usePlay();
   const now = useNow();
-  const [filter, setFilter] = useState<Filter>('all');
+  const [view, setView] = useState<View>('list');
   const [params] = useSearchParams();
   const justDeleted = params.get('deleted') === '1';
 
   const total = Object.values(activity).reduce((sum, n) => sum + n, 0);
-  const shown = courts.filter((c) => filter === 'all' || c.kind === filter);
-  const mine = shown.filter((c) => isFavorite(c.id));
-  const others = shown.filter((c) => !isFavorite(c.id));
+  const mine = courts.filter((c) => isFavorite(c.id));
+  const others = courts.filter((c) => !isFavorite(c.id));
   const recent = live.filter((c) => isLive(c, now)).slice(0, 5);
-  const courtName = (id: string) => courts.find((c) => c.id === id);
+  const courtFor = (id: string) => courts.find((c) => c.id === id);
 
   return (
-    <div className="page">
+    <div className="page home">
       {justDeleted && (
         <p className="notice" role="status">
           Your account and everything tied to it has been deleted.
         </p>
       )}
+
       <header className="home-head">
-        <h1 className="page-title">Who's playing</h1>
-        <p className="live-line">
-          {total > 0 && <span className="live-dot" aria-hidden="true" />}
-          {total === 0
-            ? 'Nobody is checked in yet. Be the first and get a run going.'
-            : total === 1
-              ? '1 player checked in right now'
-              : `${total} players checked in right now`}
+        <h1 className="page-title">Courts</h1>
+        <p className="home-sub">
+          {total === 0 ? 'Tucson · Nobody checked in yet' : `Tucson · ${total} playing right now`}
         </p>
       </header>
 
-      {!userId && (
-        <section className="intro">
-          <div className="court-lines" aria-hidden="true" />
-          <h2>See who's at the court before you go.</h2>
-          <p>Check in when you get there, build a crew for your regular run, and get a heads up when a game starts.</p>
-          <p className="intro-cta">
-            <Link className="btn btn-light" to="/login?mode=signup">
-              Create your account
-            </Link>
-            <Link className="intro-link" to="/login">
-              Sign in
-            </Link>
-          </p>
-        </section>
+      <div className="seg" role="group" aria-label="Show courts as">
+        <button className={view === 'list' ? 'seg-btn on' : 'seg-btn'} aria-pressed={view === 'list'} onClick={() => setView('list')}>
+          List
+        </button>
+        <button className={view === 'map' ? 'seg-btn on' : 'seg-btn'} aria-pressed={view === 'map'} onClick={() => setView('map')}>
+          Map
+        </button>
+      </div>
+
+      {courtsLoading && courts.length === 0 && <Loading label="Loading courts" />}
+      {courtsError && <ErrorNote>{courtsError}</ErrorNote>}
+
+      {view === 'map' ? (
+        <div className="map-card">
+          <Suspense fallback={<div className="map map-loading" style={{ height: 420 }} />}>
+            <CourtMap courts={courts} activity={activity} height={420} />
+          </Suspense>
+        </div>
+      ) : (
+        <>
+          {mine.length > 0 && (
+            <>
+              <h2 className="list-label">Your courts</h2>
+              <CourtList courts={mine} now={now} />
+              {others.length > 0 && <h2 className="list-label">More courts</h2>}
+            </>
+          )}
+          <CourtList courts={others} now={now} />
+        </>
       )}
 
-      <div className="map-card">
-        <Suspense fallback={<div className="map map-loading" style={{ height: 260 }} />}>
-          <CourtMap courts={courts} activity={activity} />
-        </Suspense>
-      </div>
+      {!userId && (
+        <div className="join-strip">
+          <p>Check in, build a crew, get a heads up when a run starts.</p>
+          <Link className="btn btn-primary btn-small" to="/login?mode=signup">
+            Join
+          </Link>
+        </div>
+      )}
 
       {userId && recent.length > 0 && (
         <section className="section-block">
-          <h2 className="block-title">Just checked in</h2>
+          <h2 className="list-label">Just checked in</h2>
           <ul className="players card-list">
             {recent.map((c) => {
-              const court = courtName(c.court_id);
+              const court = courtFor(c.court_id);
               return (
                 <PlayerRow
                   key={c.id}
@@ -93,88 +107,49 @@ export function CourtsPage() {
         </section>
       )}
 
-      <section className="section-block">
-        <div className="block-head">
-          <h2 className="block-title">Courts</h2>
-          <div className="filters" role="group" aria-label="Filter courts">
-            {(['all', 'indoor', 'outdoor'] as Filter[]).map((f) => (
-              <button
-                key={f}
-                className={filter === f ? 'filter on' : 'filter'}
-                aria-pressed={filter === f}
-                onClick={() => setFilter(f)}
-              >
-                {f === 'all' ? 'All' : f === 'indoor' ? 'Indoor' : 'Outdoor'}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {courtsLoading && courts.length === 0 && <Loading label="Loading courts" />}
-        {courtsError && <ErrorNote>{courtsError}</ErrorNote>}
-
-        {mine.length > 0 && (
-          <>
-            <h3 className="group-title">Your courts</h3>
-            <div className="court-grid">
-              {mine.map((court) => (
-                <CourtCard key={court.id} court={court} now={now} />
-              ))}
-            </div>
-            {others.length > 0 && <h3 className="group-title">More courts</h3>}
-          </>
-        )}
-        <div className="court-grid">
-          {others.map((court) => (
-            <CourtCard key={court.id} court={court} now={now} />
-          ))}
-        </div>
-        {userId && mine.length === 0 && (
-          <p className="fine">Tap the star on a court to pin it here and get alerts when a run starts.</p>
-        )}
-        <p className="fine">Hours come from each court's posted schedule. Holidays and game days can change them.</p>
-      </section>
+      {userId && mine.length === 0 && (
+        <p className="fine">Star a court on its page to pin it here and get alerts when a run starts.</p>
+      )}
+      <p className="fine">Hours come from each court's posted schedule. Holidays and game days can change them.</p>
     </div>
   );
 }
 
-function CourtCard({ court, now }: { court: Court; now: Date }) {
-  const { userId } = useAuth();
-  const { activity, live } = usePlay();
-  const players = activity[court.id] ?? 0;
-  const here = live.filter((c) => c.court_id === court.id && isLive(c, now));
-
+function CourtList({ courts, now }: { courts: Court[]; now: Date }) {
+  const { activity } = usePlay();
+  if (courts.length === 0) return null;
+  // Busiest courts first; ties keep the usual order.
+  const sorted = [...courts].sort((a, b) => (activity[b.id] ?? 0) - (activity[a.id] ?? 0));
   return (
-    <article className={players > 0 ? 'court-card has-players' : 'court-card'}>
-      <div className="court-card-top">
-        <div className="court-card-title">
-          <Link to={`/court/${court.slug}`} className="court-name">
-            {court.name}
-          </Link>
-          <p className="court-meta">
-            {court.kind === 'indoor' ? 'Indoor' : 'Outdoor'}, {court.area}
-          </p>
-        </div>
-        <div className="court-count-box" aria-label={`${players} checked in`}>
-          <span className="court-count-num">{players}</span>
-          <span className="court-count-label">{players === 1 ? 'player' : 'players'}</span>
-        </div>
-        <FavoriteButton court={court} />
-      </div>
-      <StatusPill status={courtStatus(court.hours, now)} />
-      <RunMeter players={players} />
-      <div className="court-card-foot">
-        {userId && here.length > 0 ? (
-          <Link to={`/court/${court.slug}`} className="stack-link" aria-label={`See who's at ${court.name}`}>
-            <AvatarStack people={here.map((c) => ({ id: c.user_id, profile: c.profiles }))} />
-          </Link>
-        ) : (
-          <Link to={`/court/${court.slug}`} className="text-link">
-            Details
-          </Link>
-        )}
-        <CheckInControl court={court} compact />
-      </div>
-    </article>
+    <ul className="court-list">
+      {sorted.map((court) => {
+        const players = activity[court.id] ?? 0;
+        const status = courtStatus(court.hours, now);
+        return (
+          <li key={court.id}>
+            <Link to={`/court/${court.slug}`} className="court-row">
+              <span className="court-row-text">
+                <span className="court-row-name">{court.name}</span>
+                <span className="court-row-meta">
+                  {court.kind === 'indoor' ? 'Indoor' : 'Outdoor'} · {court.area}
+                </span>
+                <span className={`court-row-meta status-${status.tone}`}>{status.label}</span>
+              </span>
+              {players > 0 ? (
+                <span className="count-pill">
+                  <span className="live-dot" aria-hidden="true" />
+                  {players} playing
+                </span>
+              ) : (
+                <span className="count-empty">Empty</span>
+              )}
+              <svg className="chev" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 6l6 6-6 6" />
+              </svg>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
