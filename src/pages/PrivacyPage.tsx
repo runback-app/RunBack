@@ -13,7 +13,7 @@ export function PrivacyPage() {
   return (
     <article className="page narrow prose">
       <h1 className="page-title">Privacy</h1>
-      <p className="muted">Last updated November 2, 2026</p>
+      <p className="muted">Last updated November 3, 2026</p>
       <p>
         Runback helps people find pickup runs in Tucson. Here's what we collect, who can see it, and how to delete it.
         The short version: we only keep what the app needs, and we never sell your info or use it for ads.
@@ -45,6 +45,7 @@ export function PrivacyPage() {
         <li>
           <strong>Messages you send us</strong> through the form below.
         </li>
+        <li><strong>Account recovery requests:</strong> the player name, contact email, and crew or court details you provide when you ask for help signing in. Only the Runback team can read these requests.</li>
         <li>
           <strong>Visits:</strong> anonymous page-view counts so we know which pages get used. No cookies and no ad
           tracking.
@@ -71,6 +72,7 @@ export function PrivacyPage() {
         <li>Check-ins leave the app when your time runs out. The history is deleted after 30 days.</li>
         <li>Court chat messages are deleted after 24 hours. A message reported by 3 players is hidden right away.</li>
         <li>Chat messages and run details stay until removed or the crew is deleted. Your messages and RSVPs are deleted when you delete your account.</li>
+        <li>Account recovery requests are deleted after 30 days. A request does not automatically change an account; we verify ownership before helping restore access.</li>
       </ul>
 
       <h2>Deleting your account</h2>

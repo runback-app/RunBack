@@ -118,6 +118,9 @@ main {
   margin-top: 12px;
 }
 
+.recovery-links { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
+.recovery-honeypot { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
 .loading {
   color: var(--muted);
   padding: 24px var(--gutter);

@@ -56,6 +56,7 @@ Other commands: `npm test` runs the tests, `npm run build` makes the production 
 
 - [ ] **Turn email confirmation back on.** It's off right now because Supabase's free email only sends to the project's team. To fix: buy a domain, set up an email service (Resend has a free tier), add it under Supabase > Authentication > SMTP, then turn **Confirm email** back on.
 - [ ] Complete real inbox tests of signup confirmation and password reset after SMTP is configured. Reset UI, password matching, and show/hide controls are implemented.
+- [x] Forgot-email recovery at `/forgot-email`, with a private manual-review inbox and sign-in email shown only on the account owner's profile. Requests do not reveal or change accounts automatically.
 - [ ] Optional player caps and waitlists.
 - [x] Private crew chat and a separate chat for each scheduled run.
 - [ ] Check that people are actually near the court when they check in.
@@ -70,3 +71,13 @@ Other commands: `npm test` runs the tests, `npm run build` makes the production 
 Run `npm test` and `npm run build`. `supabase/tests/runs_chat_permissions.sql` exercises recurrence, RSVP impersonation prevention, member-only chats, leader-only changes/photos, reminders and cancellation notices in a rolled-back transaction. It needs one existing crew with two members. It does not retain test data or send pushes.
 
 In Supabase Auth URL Configuration, allow `https://runback-dun.vercel.app/reset-password` and set the Site URL to the live app. A custom SMTP sender is required before promising verification/reset email delivery to players outside the Supabase project team. Do not enable email confirmation until that sender is ready.
+
+## Account recovery operations
+
+The shared production database is `ioxmdthiblgudygedjmc` in Nick's shared organization. Apply `20261103215047_account_recovery_requests.sql` before deploying the forgot-email form. Test with `supabase/tests/account_recovery_permissions.sql`; the test rolls back every row and sends no email.
+
+Read requests in Supabase **Table Editor > account_recovery_requests**. Both signed-out visitors and players can submit, but cannot read, update, delete, set timestamps, or retrieve other requests. Requests expire after 30 days; duplicates are silently limited to three per contact address per hour, with a total inbox limit of 100 per hour. The form has no account-lookup endpoint.
+
+Sanjay or Nick must review this inbox and contact the supplied reply address manually. That address is an unverified claim: do not disclose a registered email or change account access based only on a display name, crew/court details, profile photo, or a message from a crewmate. Verify ownership through an existing signed-in session or the original registered inbox; if neither is available, do not transfer the account without another independently verified ownership method. Never ask for passwords or reset codes.
+
+SMTP launch steps: verify an owned domain with the email sender, configure the sender in this shared project's **Authentication > Emails > SMTP Settings**, disable email link tracking, and run a complete real-inbox password-reset test with a non-team address. Only then enable signup confirmation. When a custom website domain is connected, add its root and `/reset-password` URLs to Auth URL Configuration, retain the existing live URLs during transition, and repeat the inbox test. A domain purchase alone does not configure email delivery.

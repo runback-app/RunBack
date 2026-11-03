@@ -10,7 +10,7 @@ import { currentAlertSupport } from '../lib/push';
 import { Avatar, ErrorNote } from '../components';
 
 export function ProfilePage() {
-  const { userId, ready, profile } = useAuth();
+  const { userId, ready, profile, session } = useAuth();
 
   if (ready && !userId) {
     return (
@@ -36,6 +36,12 @@ export function ProfilePage() {
       </div>
       <PhotoPicker />
       <ProfileForm />
+      <section className="panel">
+        <h2>Your sign-in email</h2>
+        <p>{session?.user.email}</p>
+        <p className="fine">Only you can see this here. Save it in your password manager so you can get back into your account.</p>
+        <Link to="/forgot-email">Account recovery help</Link>
+      </section>
       <AlertSettings />
       <SignOut />
       <DeleteAccount />

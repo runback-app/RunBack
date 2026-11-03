@@ -14,6 +14,7 @@ import { CrewPage } from './pages/CrewPage';
 import { CrewsPage } from './pages/CrewsPage';
 import { JoinPage } from './pages/JoinPage';
 import { LoginPage } from './pages/LoginPage';
+import { AccountRecoveryPage } from './pages/AccountRecoveryPage';
 import { PlayerPage } from './pages/PlayerPage';
 import { ProfilePage } from './pages/ProfilePage';
 
@@ -89,6 +90,7 @@ export function App() {
           <Route path="/join/:code" element={<JoinPage />} />
           <Route path="/player/:id" element={<PlayerPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage/>}/><Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-email" element={<AccountRecoveryPage />} />
           <Route path="/me" element={<ProfilePage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route
