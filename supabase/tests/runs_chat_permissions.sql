@@ -16,7 +16,10 @@ select crew_id,court_id,'Permission test recurring',array[0,1,2,3,4,5,6],'18:00'
 DO $$begin if (select count(*) from public.runs where title='Permission test recurring')<70 then raise exception 'Recurrence did not create rolling dates'; end if;end$$;
 insert into public.runs(crew_id,court_id,title,starts_at)
 select crew_id,court_id,'Permission test one-off',now()+interval '20 minutes' from social_test_context;
+insert into storage.objects(bucket_id,name)
+select 'crew-photos',crew_id::text||'/permission-test.jpg' from social_test_context;
 select set_config('request.jwt.claims',json_build_object('sub',(select member_id from social_test_context),'role','authenticated')::text,true);
+DO $$begin if not exists(select 1 from storage.objects where bucket_id='crew-photos' and name=(select crew_id::text||'/permission-test.jpg' from social_test_context)) then raise exception 'Member cannot read crew photo';end if;end$$;
 select public.set_run_rsvp(id,'going',true) from public.runs where title='Permission test one-off';
 select public.set_run_rsvp(id,'maybe',false) from public.runs where title='Permission test one-off';
 DO $$begin if not exists(select 1 from public.run_rsvps v join public.runs r on r.id=v.run_id where r.title='Permission test one-off' and v.user_id=auth.uid() and v.status='maybe' and not v.reminder) then raise exception 'RSVP conflict update failed';end if;end$$;
