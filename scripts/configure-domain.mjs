@@ -34,4 +34,6 @@ for (const name of ['runback.net', 'www.runback.net']) {
     if (verified.ok) result = verified;
   }
   console.log(JSON.stringify({ domain: name, verified: result.data.verified, redirect: result.data.redirect, verification: result.data.verification }));
+  const config = await api(`/v6/domains/${name}/config`);
+  if (config.ok) console.log(JSON.stringify({ domain: name, dns: config.data }));
 }
