@@ -5,6 +5,8 @@ begin;
 create temp table cc as
 select gen_random_uuid() a, gen_random_uuid() b, gen_random_uuid() c, gen_random_uuid() d,
        (select id from public.courts order by sort_order limit 1) court_id;
+alter table cc enable row level security;
+create policy test_context_read on cc for select to authenticated, anon using (true);
 grant select on cc to authenticated, anon;
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data, created_at, updated_at)

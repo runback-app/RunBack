@@ -17,8 +17,10 @@ DO $$begin if (select count(*) from public.runs where title='Permission test rec
 insert into public.runs(crew_id,court_id,title,starts_at)
 select crew_id,court_id,'Permission test one-off',now()+interval '20 minutes' from social_test_context;
 select set_config('request.jwt.claims',json_build_object('sub',(select member_id from social_test_context),'role','authenticated')::text,true);
-insert into public.run_rsvps(run_id,user_id,status)
-select id,(select member_id from social_test_context),'going' from public.runs where title='Permission test one-off';
+select public.set_run_rsvp(id,'going',true) from public.runs where title='Permission test one-off';
+select public.set_run_rsvp(id,'maybe',false) from public.runs where title='Permission test one-off';
+DO $$begin if not exists(select 1 from public.run_rsvps v join public.runs r on r.id=v.run_id where r.title='Permission test one-off' and v.user_id=auth.uid() and v.status='maybe' and not v.reminder) then raise exception 'RSVP conflict update failed';end if;end$$;
+select public.set_run_rsvp(id,'going',true) from public.runs where title='Permission test one-off';
 insert into public.crew_messages(crew_id,run_id,user_id,body)
 select crew_id,id,(select member_id from social_test_context),'Test run message' from public.runs where title='Permission test one-off';
 DO $$declare n integer;begin
