@@ -9,6 +9,7 @@ import type {
   LiveCheckin,
   Profile,
 } from './types';
+import type { LineRow } from './line';
 
 const BRIEF = 'display_name, avatar_url, position, skill, height_in';
 
@@ -76,6 +77,45 @@ export async function checkOut(): Promise<void> {
   const { error } = await supabase.rpc('check_out');
   if (error) fail(error, "Couldn't check you out.");
 }
+
+// ---------- Got next (teams) ----------
+
+// True when the teams feature isn't in the database yet, so the page can hide it instead of erroring.
+function missingFeature(error: { message?: string; code?: string } | null): boolean {
+  return !!error && (error.code === 'PGRST202' || /could not find the function|does not exist/i.test(error.message ?? ''));
+}
+
+/** Teams waiting and free agents per court. Works when signed out. */
+export async function fetchLineCounts(): Promise<Record<string, { teams: number; freeAgents: number }>> {
+  const { data, error } = await supabase.rpc('court_line_counts');
+  if (missingFeature(error)) return {};
+  if (error) fail(error, "Couldn't load the lines.");
+  const counts: Record<string, { teams: number; freeAgents: number }> = {};
+  for (const row of (data ?? []) as { court_id: string; teams: number; free_agents: number }[]) {
+    counts[row.court_id] = { teams: row.teams, freeAgents: row.free_agents };
+  }
+  return counts;
+}
+
+/** The line at one court with names. Signed-in only. Null means the feature isn't set up yet. */
+export async function fetchCourtLine(courtId: string): Promise<LineRow[] | null> {
+  const { data, error } = await supabase.rpc('court_line', { p_court_id: courtId });
+  if (missingFeature(error)) return null;
+  if (error) fail(error, "Couldn't load the teams.");
+  return (data ?? []) as LineRow[];
+}
+
+async function lineAction(fn: string, args: Record<string, string>, fallback: string): Promise<void> {
+  const { error } = await supabase.rpc(fn, args);
+  if (error) fail(error, fallback);
+}
+
+export const startTeam = (courtId: string) => lineAction('start_team', { p_court_id: courtId }, "Couldn't start a team.");
+export const putMeOnTeam = (courtId: string) => lineAction('put_me_on_team', { p_court_id: courtId }, "Couldn't find you a team.");
+export const joinTeam = (teamId: string) => lineAction('join_team', { p_team_id: teamId }, "Couldn't join that team.");
+export const leaveTeam = () => lineAction('leave_team', {}, "Couldn't leave the team.");
+export const teamOn = (teamId: string) => lineAction('team_on', { p_team_id: teamId }, "Couldn't update the line.");
+export const addFreeAgent = (userId: string) => lineAction('add_free_agent', { p_user_id: userId }, "Couldn't add that player.");
 
 // ---------- Favorites ----------
 

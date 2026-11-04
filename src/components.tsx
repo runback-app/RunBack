@@ -4,31 +4,9 @@ import { useAuth } from './auth';
 import { usePlay } from './data';
 import { courtStatus, type CourtStatus } from './lib/hours';
 import { avatarColor, initials, playerSummary } from './lib/profile';
-import { FULL_RUN, runMeter } from './lib/run';
 import { CHECKIN_OPTIONS, DEFAULT_CHECKIN_MINUTES, timeLeft } from './lib/time';
 import type { Court, PlayerBrief } from './lib/types';
 import { useNow } from './hooks';
-
-/** Ten spots split into two teams of five. Filled spots are players checked in. */
-export function RunMeter({ players, size = 'md' }: { players: number; size?: 'md' | 'lg' }) {
-  const meter = runMeter(players);
-  return (
-    <div className={`meter meter-${size}`} role="img" aria-label={`${players} checked in. ${meter.label}.`}>
-      <div className="meter-spots" aria-hidden="true">
-        {[0, 1].map((team) => (
-          <span className="meter-team" key={team}>
-            {Array.from({ length: FULL_RUN / 2 }, (_, i) => {
-              const index = team * (FULL_RUN / 2) + i;
-              return <span key={index} className={index < meter.filled ? 'spot on' : 'spot'} />;
-            })}
-          </span>
-        ))}
-        {meter.waiting > 0 && <span className="meter-extra">+{meter.waiting}</span>}
-      </div>
-      <span className="meter-label">{meter.label}</span>
-    </div>
-  );
-}
 
 export function StatusPill({ status }: { status: CourtStatus }) {
   return <span className={`pill pill-${status.tone}`}>{status.label}</span>;
@@ -189,7 +167,7 @@ export function MyStatusBar() {
 
 /**
  * Check in / move here / leave controls for one court.
- * `compact` is the one-tap version used in the court list (always 2 hours).
+ * `compact` is the one-tap "I'm here" button at the top of a court page (default length).
  */
 export function CheckInControl({ court, compact = false }: { court: Court; compact?: boolean }) {
   const { userId } = useAuth();
@@ -203,8 +181,8 @@ export function CheckInControl({ court, compact = false }: { court: Court; compa
   if (!userId) {
     const to = `/login?next=${encodeURIComponent(location.pathname)}`;
     return compact ? (
-      <Link className="btn btn-quiet" to={to}>
-        Check in
+      <Link className="btn btn-primary btn-checkin" to={to}>
+        I'm here
       </Link>
     ) : (
       <div className="checkin-signin">
@@ -241,12 +219,20 @@ export function CheckInControl({ court, compact = false }: { court: Court; compa
 
   if (compact) {
     if (here) {
-      return <span className="here-tag">You're here, {timeLeft(myCheckin!.expires_at, now)}</span>;
+      return (
+        <div className="checkin-compact">
+          <span className="here-tag">You're here · {timeLeft(myCheckin!.expires_at, now)}</span>
+          <button className="link-button quiet-link" disabled={busy} onClick={() => void run(endCheckin)}>
+            {busy ? 'Leaving…' : 'Check out'}
+          </button>
+          {error && <ErrorNote>{error}</ErrorNote>}
+        </div>
+      );
     }
     return (
       <div className="checkin-compact">
-        <button className="btn btn-primary" disabled={busy} onClick={() => go(DEFAULT_CHECKIN_MINUTES)}>
-          {busy ? 'Checking in…' : elsewhere ? 'Move here' : 'Check in'}
+        <button className="btn btn-primary btn-checkin" disabled={busy} onClick={() => go(DEFAULT_CHECKIN_MINUTES)}>
+          {busy ? 'Checking in…' : elsewhere ? 'Move here' : "I'm here"}
         </button>
         {error && <ErrorNote>{error}</ErrorNote>}
       </div>

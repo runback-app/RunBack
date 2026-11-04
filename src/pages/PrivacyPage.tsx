@@ -55,11 +55,12 @@ export function PrivacyPage() {
       <h2>Who can see what</h2>
       <ul>
         <li>
-          <strong>Anyone:</strong> courts, hours, and how many people are checked in. No names.
+          <strong>Anyone:</strong> courts, hours, how many people are checked in, and how many teams are waiting. No names.
         </li>
         <li>
-          <strong>Signed-in players:</strong> your name, photo, profile, the court you're checked in at right now, and
-          anything you post in a court chat. Who reported a message is never shown.
+          <strong>Signed-in players:</strong> your name, photo, profile, the court you're checked in at right now, which
+          Got next team you're on (or that you're a free agent), and anything you post in a court chat. Who reported a
+          message is never shown.
         </li>
         <li>
           <strong>Your crews:</strong> who's in the crew and its invite link. Anyone with the link can join, so only
@@ -70,6 +71,7 @@ export function PrivacyPage() {
       <h2>How long we keep it</h2>
       <ul>
         <li>Check-ins leave the app when your time runs out. The history is deleted after 30 days.</li>
+        <li>Got next teams leave the line after 1 hour and are deleted after a day.</li>
         <li>Court chat messages are deleted after 24 hours. A message reported by 3 players is hidden right away.</li>
         <li>Chat messages and run details stay until removed or the crew is deleted. Your messages and RSVPs are deleted when you delete your account.</li>
         <li>Account recovery requests are deleted after 30 days. A request does not automatically change an account; we verify ownership before helping restore access.</li>

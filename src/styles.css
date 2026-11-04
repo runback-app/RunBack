@@ -1,25 +1,27 @@
 /* ---------- Tokens ---------- */
 :root {
-  --bg: #f5f6f3;          /* sun-bleached concrete */
-  --surface: #ffffff;
-  --surface-2: #f6f8f5;
-  --ink: #17201b;
-  --muted: #56625b;
-  --line: #e1e5df;
-  --court: #2e6b4e;       /* painted outdoor court green */
-  --court-deep: #24563e;
-  --court-soft: #dcebe2;
-  --on-court: #ffffff;
-  --ball: #e8711c;        /* ball orange, only for live players */
-  --ball-soft: #fbe6d3;
-  --open-bg: #dcebe2;
-  --open-ink: #1f5a3f;
-  --closing-bg: #fbe6d3;
-  --closing-ink: #8a4300;
-  --closed-bg: #e6e9e6;
-  --closed-ink: #59635d;
-  --danger: #b3261e;
-  --link: #2e6b4e;
+  /* "Night court" look (Nov 2026): dark court at night, ball-orange for anything live or tappable. */
+  --bg: #0f1512;          /* night court */
+  --surface: #18211c;
+  --surface-2: #1f2a24;
+  --ink: #f2f4f1;
+  --muted: #a7b2ab;
+  --line: #2a352f;
+  --court: #ff8a3d;       /* main buttons and links */
+  --court-deep: #ffa566;
+  --court-soft: #2b2118;
+  --on-court: #0f1512;
+  --ball: #ff8a3d;        /* ball orange: live players, counts */
+  --ball-soft: #2b2118;
+  --open-bg: #1f4a35;
+  --open-ink: #bfe8d2;
+  --closing-bg: #3a2516;
+  --closing-ink: #ffb27a;
+  --closed-bg: #2a352f;
+  --closed-ink: #c3ccc6;
+  --danger: #ff7a6b;
+  --link: #ff8a3d;
+  --green: #4fbf86;       /* a full team */
 
   --display: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
   --body: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -28,10 +30,8 @@
   --radius-sm: 10px;
   --gutter: 16px;
   --tabbar: 64px;
-  color-scheme: light;
+  color-scheme: dark;
 }
-
-/* Light only for now (the "clean list" design, Nov 2026). A dark theme could come back as a setting. */
 
 /* ---------- Base ---------- */
 *,
@@ -160,9 +160,10 @@ main {
   font-family: var(--display);
   font-weight: 800;
   font-size: 28px;
-  color: var(--ink);
+  color: var(--ball);
   text-decoration: none;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .ball {
@@ -179,8 +180,8 @@ main {
   inset: 0;
   border-radius: 50%;
   background:
-    linear-gradient(var(--ink), var(--ink)) center / 100% 1.5px no-repeat,
-    linear-gradient(var(--ink), var(--ink)) center / 1.5px 100% no-repeat;
+    linear-gradient(var(--bg), var(--bg)) center / 100% 1.5px no-repeat,
+    linear-gradient(var(--bg), var(--bg)) center / 1.5px 100% no-repeat;
   opacity: 0.55;
 }
 
@@ -316,13 +317,13 @@ main {
   }
   @keyframes pulse {
     0% {
-      box-shadow: 0 0 0 0 rgba(232, 113, 28, 0.55);
+      box-shadow: 0 0 0 0 rgba(255, 138, 61, 0.55);
     }
     70% {
-      box-shadow: 0 0 0 8px rgba(232, 113, 28, 0);
+      box-shadow: 0 0 0 8px rgba(255, 138, 61, 0);
     }
     100% {
-      box-shadow: 0 0 0 0 rgba(232, 113, 28, 0);
+      box-shadow: 0 0 0 0 rgba(255, 138, 61, 0);
     }
   }
 }
@@ -333,8 +334,13 @@ main {
 }
 
 .page-title {
-  font-size: clamp(26px, 6vw, 34px);
-  margin-bottom: 4px;
+  font-family: var(--display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 0.95;
+  font-size: clamp(40px, 11vw, 58px);
+  margin-bottom: 6px;
 }
 
 .live-line {
@@ -476,9 +482,9 @@ main {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #fff;
-  color: #17201b;
-  border: 3px solid #2e6b4e;
+  background: var(--surface);
+  color: var(--ink);
+  border: 3px solid var(--line);
   font-family: var(--display);
   font-weight: 800;
   font-size: 18px;
@@ -488,9 +494,9 @@ main {
 }
 
 .pin-live {
-  background: #e8711c;
-  border-color: #fff;
-  color: #fff;
+  background: var(--ball);
+  border-color: var(--bg);
+  color: var(--on-court);
 }
 
 .pin-focus {
@@ -505,8 +511,8 @@ main {
   white-space: nowrap;
   font-size: 12px;
   font-weight: 700;
-  color: #17201b;
-  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  background: rgba(15, 21, 18, 0.9);
   padding: 1px 6px;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
@@ -1022,8 +1028,8 @@ main {
 }
 
 .btn-light {
-  background: var(--on-court);
-  color: #17201b;
+  background: var(--ink);
+  color: var(--bg);
 }
 
 .btn-quiet {
@@ -1485,7 +1491,7 @@ main {
 }
 
 /* Crew coordination */
-.run-list{display:grid;gap:1rem;margin-top:1rem}.run-list h3{margin:0}.chat-list{list-style:none;padding:0;max-height:28rem;overflow:auto;display:grid;gap:.75rem}.chat-list li{background:var(--surface,#fff);border:1px solid #deded4;border-radius:12px;padding:1rem}.chat-heading{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}.chat-heading time{font-size:.75rem;color:#697264}.chat-body{white-space:pre-wrap;overflow-wrap:anywhere;margin:.6rem 0}.crew-picture{width:96px;height:96px;object-fit:cover;border-radius:20px}.day-choices{display:flex;gap:1rem;flex-wrap:wrap}.day-choices label{display:flex;align-items:center;gap:.25rem}.notice{margin:1rem 0}.notice.unread{border-left:4px solid #d9512d}.notice a{text-decoration:none;color:inherit}details>summary{cursor:pointer;font-weight:700;padding:1rem 0}.subsection .switch-row{margin-top:1rem}.subsection .panel{margin-top:1rem}.field input[type=file]{max-width:100%}.topbar .nav{flex-wrap:wrap}@media(max-width:500px){.topbar .nav{gap:.6rem;font-size:.85rem}.form-actions .btn{flex-grow:1}}
+.run-list{display:grid;gap:1rem;margin-top:1rem}.run-list h3{margin:0}.chat-list{list-style:none;padding:0;max-height:28rem;overflow:auto;display:grid;gap:.75rem}.chat-list li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1rem}.chat-heading{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}.chat-heading time{font-size:.75rem;color:var(--muted)}.chat-body{white-space:pre-wrap;overflow-wrap:anywhere;margin:.6rem 0}.crew-picture{width:96px;height:96px;object-fit:cover;border-radius:20px}.day-choices{display:flex;gap:1rem;flex-wrap:wrap}.day-choices label{display:flex;align-items:center;gap:.25rem}.notice{margin:1rem 0}.notice.unread{border-left:4px solid var(--ball)}.notice a{text-decoration:none;color:inherit}details>summary{cursor:pointer;font-weight:700;padding:1rem 0}.subsection .switch-row{margin-top:1rem}.subsection .panel{margin-top:1rem}.field input[type=file]{max-width:100%}.topbar .nav{flex-wrap:wrap}@media(max-width:500px){.topbar .nav{gap:.6rem;font-size:.85rem}.form-actions .btn{flex-grow:1}}
 
 /* ---------- Home: clean list (Nov 2026 redesign, option A) ---------- */
 .home .home-head {
@@ -1503,7 +1509,7 @@ main {
   gap: 4px;
   padding: 4px;
   margin-bottom: 16px;
-  background: #e7eae5;
+  background: var(--surface);
   border-radius: 12px;
   max-width: 420px;
 }
@@ -1522,7 +1528,8 @@ main {
 .seg-btn.on {
   background: var(--surface);
   color: var(--ink);
-  box-shadow: 0 1px 2px rgba(23, 32, 27, 0.12);
+  box-shadow: inset 0 0 0 1px var(--line);
+  background: var(--surface-2);
 }
 
 .list-label {
@@ -1545,7 +1552,7 @@ main {
 }
 
 .court-list li + li {
-  border-top: 1px solid #edf0eb;
+  border-top: 1px solid var(--line);
 }
 
 .court-row {
@@ -1616,7 +1623,7 @@ main {
 
 .court-row .chev {
   flex: none;
-  color: #9aa59f;
+  color: var(--muted);
 }
 
 .join-strip {
@@ -1637,8 +1644,437 @@ main {
   color: var(--open-ink);
 }
 
-/* Calmer section headings to match the cleaner home screen. */
+/* Section headings in the display font, like a scoreboard. */
 .subsection > h2,
-.panel > h2 {
+.panel > h2,
+.display-title {
+  font-family: var(--display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 30px;
+  line-height: 1;
+}
+
+/* ---------- Night court: courts list (Nov 2026) ---------- */
+.court-list {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+  display: grid;
+  gap: 10px;
+}
+
+.court-list li + li {
+  border-top: 0;
+}
+
+.court-row {
+  background: var(--surface);
+  border: 1.5px solid var(--surface);
+  border-radius: 14px;
+  align-items: center;
+}
+
+.court-row.busy {
+  border-color: var(--ball);
+}
+
+.court-row:hover {
+  background: var(--surface-2);
+}
+
+.court-row-name {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 26px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: 4px;
+}
+
+.line-tag {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tag-wait {
+  background: var(--ball);
+  color: var(--on-court);
+}
+
+.tag-open {
+  background: var(--open-bg);
+  color: var(--open-ink);
+}
+
+.tag-empty {
+  color: var(--muted);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.court-row-count {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.court-row-num {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 56px;
+  line-height: 0.9;
+  color: var(--line);
+}
+
+.court-row-num.live {
+  color: var(--ball);
+}
+
+.court-row-here {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---------- Night court: court page ---------- */
+.court-hero {
+  margin-top: 18px;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hero-count {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.hero-num {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 72px;
+  line-height: 0.85;
+  color: var(--line);
+}
+
+.hero-num.live {
+  color: var(--ball);
+}
+
+.hero-label {
+  font-family: var(--display);
+  font-weight: 700;
   font-size: 20px;
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.hero-fine {
+  margin: 8px 2px 0;
+}
+
+.btn-checkin {
+  min-height: 52px;
+  padding: 10px 20px;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.checkin-compact {
+  gap: 2px;
+}
+
+.checkin-compact .here-tag {
+  background: none;
+  padding: 0;
+  color: var(--open-ink);
+  font-weight: 700;
+}
+
+.quiet-link {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 15px;
+  min-height: 32px;
+}
+
+.checkin-more {
+  margin-top: 4px;
+}
+
+.checkin-more > summary {
+  font-size: 15px;
+  color: var(--muted);
+  padding: 8px 2px;
+}
+
+.checkin-more .checkin {
+  margin-top: 0;
+  padding-top: 4px;
+  border-top: 0;
+}
+
+/* ---------- Got next ---------- */
+.gotnext {
+  margin-top: 24px;
+}
+
+.gotnext-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.display-title {
+  font-size: 36px;
+  margin: 0;
+}
+
+.gotnext-note {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: right;
+}
+
+.upnext {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--ball);
+  color: var(--on-court);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.upnext strong {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 28px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.line {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.line-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--surface);
+  border: 2px solid var(--surface);
+  border-radius: 14px;
+}
+
+.line-card.mine {
+  border-color: var(--ball);
+}
+
+.line-place {
+  flex: none;
+  width: 44px;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 1;
+  color: #4a5750;
+}
+
+.line-card.first .line-place {
+  color: var(--ink);
+}
+
+.line-card.mine .line-place {
+  color: var(--ball);
+}
+
+.line-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.line-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.line-name {
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.line-upnext {
+  color: var(--ball);
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+}
+
+.line-count {
+  flex: none;
+  font-weight: 700;
+}
+
+.line-count.full {
+  color: var(--green);
+  text-transform: uppercase;
+  font-size: 14px;
+}
+
+.line-bars {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.line-bars span {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+}
+
+.line-bars span.on {
+  background: var(--ink);
+}
+
+.line-card.mine .line-bars span.on {
+  background: var(--ball);
+}
+
+.line-card.full:not(.mine) .line-bars span.on {
+  background: var(--green);
+}
+
+.line-players {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* Free agents: pinned first, a step quieter than a real team, star instead of a number. */
+.line-card.line-free {
+  background: transparent;
+  border: 1.5px dashed #3a463f;
+  padding: 10px 14px;
+}
+
+.line-free .line-place {
+  font-size: 30px;
+  color: var(--ball);
+  text-align: center;
+}
+
+.line-free .line-name {
+  font-size: 15px;
+  color: var(--closed-ink);
+}
+
+.line-free .line-count {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.agent-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.agent-chip {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ball);
+  background: transparent;
+  color: var(--ink);
+  font: 700 14px var(--body);
+  cursor: pointer;
+}
+
+.agent-chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.line-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px;
+  border: 1.5px dashed var(--line);
+  border-radius: 14px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.line-empty strong {
+  color: var(--ink);
+}
+
+.line-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.line-hint {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.btn-big {
+  width: 100%;
+  min-height: 58px;
+  background: var(--ball);
+  color: var(--on-court);
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.btn-big:hover:not(:disabled) {
+  background: var(--court-deep);
 }
