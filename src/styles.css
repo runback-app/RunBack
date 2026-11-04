@@ -2078,3 +2078,35 @@ main {
 .btn-big:hover:not(:disabled) {
   background: var(--court-deep);
 }
+
+/* ---------- Block a player ---------- */
+.chat-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.block-control {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.blocked-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  gap: 10px;
+}
+
+.blocked-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.blocked-list li span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

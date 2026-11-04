@@ -11,6 +11,7 @@ import {
   reportCourtMessage,
   sendCourtMessage,
 } from './lib/courtChat';
+import { blockPlayer, blockWarning } from './lib/blocks';
 
 /** Open chat for one court so players can get a run going. */
 export function CourtChat({ courtId, courtName }: { courtId: string; courtName: string }) {
@@ -96,19 +97,30 @@ export function CourtChat({ courtId, courtName }: { courtId: string; courtName: 
                     Remove
                   </button>
                 ) : (
-                  <button
-                    className="link-button"
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          'Report this message? It will be hidden for you, and for everyone if a few people report it.',
+                  <div className="chat-actions">
+                    <button
+                      className="link-button"
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            'Report this message? It will be hidden for you, and for everyone if a few people report it.',
+                          )
                         )
-                      )
-                        void act(() => reportCourtMessage(m.id, userId), 'Could not report message.');
-                    }}
-                  >
-                    Report
-                  </button>
+                          void act(() => reportCourtMessage(m.id, userId), 'Could not report message.');
+                      }}
+                    >
+                      Report
+                    </button>
+                    <button
+                      className="link-button"
+                      onClick={() => {
+                        if (window.confirm(blockWarning(m.profiles?.display_name ?? 'this player')))
+                          void act(() => blockPlayer(m.user_id), 'Could not block player.');
+                      }}
+                    >
+                      Block
+                    </button>
+                  </div>
                 )}
               </li>
             );
