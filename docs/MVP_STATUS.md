@@ -14,6 +14,11 @@ The shareable website is **https://runback.net**. This is a web MVP; App Store w
 - [x] Browser walkthrough on the live domain at phone width: sign-in, crew view, attendance changes, edit a run, edit a crew, chat, and refreshed nested routes.
 - [x] Rolled-back database tests of check-in/out, court switching, counts, expiry, anonymous privacy, court chat abuse rules, and run permissions/reminders/cancellation.
 - [x] Add deployment/recovery instructions and a bug-report form in the shared repository.
+- [x] Verify source helpers clean up private crew photos before deleting a crew or its owner account. Disposable accounts can no longer sign in after deletion.
+
+Validation: 68 unit tests and a production build passed. Nine public API scenarios passed; additional tests used the actual source helpers for replacement invites and deletion. GitHub Actions checks and deployment succeeded. The production domain serves the matching build, and `www` returns a 308 redirect to the main address.
+
+The browser connection stopped responding during the last replacement-invite dialog. The code and API paths pass, but the final browser clickthrough needs a reconnect. One disposable recovery request named **MVP QA Recovery 20261103** with contact **qa-recovery@runback.net** remains in the manual-review table; delete only that fixture after reconnecting (or let the 30-day cleanup remove it). All retained API test accounts, crews, and photos were removed.
 
 ## Required before inviting a broader pilot
 

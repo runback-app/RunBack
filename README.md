@@ -64,7 +64,7 @@ Other commands: `npm test` runs the tests, `npm run build` makes the production 
 - [ ] Check that people are actually near the court when they check in.
 - [ ] Let players suggest new courts.
 - [ ] Holiday and game-day hours (UA Rec changes hours for home games and breaks).
-- [ ] Phone app version, once people are using the website. Note: an iPhone app called "RunItBack" already exists, so the App Store name may need a tweak.
+- [ ] Phone app version, once people are using the website. Check the App Store name and submission requirements at that stage.
 
 ## Scheduling migration and verification
 

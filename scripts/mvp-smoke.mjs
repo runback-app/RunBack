@@ -5,9 +5,10 @@ import { createClient } from '@supabase/supabase-js';
 import { randomBytes } from 'node:crypto';
 import { readFile, writeFile, unlink } from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import { isAbsolute } from 'node:path';
 
 const fixturePath = process.env.RUNBACK_QA_FIXTURE;
-if (!fixturePath) throw new Error('Set RUNBACK_QA_FIXTURE to an absolute scratch path.');
+if (!fixturePath || !isAbsolute(fixturePath)) throw new Error('Set RUNBACK_QA_FIXTURE to an absolute scratch path.');
 const url = process.env.VITE_SUPABASE_URL;
 const key = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 if (!url || !key) throw new Error('Load the public app configuration first.');
@@ -20,16 +21,20 @@ function pass(label) { passed.push(label); console.log(`PASS: ${label}`); }
 async function save() { await writeFile(fixturePath, JSON.stringify(fixture), { mode: 0o600 }); }
 async function cleanup() {
   if (!fixture) return;
+  let needsHelp = false;
   for (const account of fixture.accounts ?? []) {
+    if (!account.id || account.deleted) continue;
     const db = client();
     const auth = await db.auth.signInWithPassword({ email: account.email, password: account.password });
-    if (auth.error) { console.error('Cleanup requires help for a disposable QA account.'); continue; }
+    if (auth.error) { needsHelp = true; console.error('Cleanup requires help for a disposable QA account.'); continue; }
     if (fixture.photo && account.id === fixture.accounts[0].id) {
       ok(await db.storage.from('crew-photos').remove([fixture.photo]), 'Remove disposable crew photo');
     }
     ok(await db.rpc('delete_my_account'), 'Delete disposable QA account');
+    account.deleted = true; await save();
     await db.auth.signOut();
   }
+  if (needsHelp) throw new Error('Cleanup is incomplete. The private fixture is retained so it can be retried.');
   await unlink(fixturePath).catch(() => {});
   console.log('Disposable QA accounts and crew cleaned up.');
 }
@@ -41,7 +46,8 @@ if (process.argv.includes('--cleanup')) {
 }
 
 fixture = { stamp: Date.now(), accounts: [] };
-await save();
+// Never overwrite an earlier walkthrough's credentials or strand its fixtures.
+await writeFile(fixturePath, JSON.stringify(fixture), { mode: 0o600, flag: 'wx' });
 let completed = false;
 try {
   const anon = client();
