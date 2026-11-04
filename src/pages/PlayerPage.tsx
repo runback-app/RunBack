@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { blockPlayer, blockWarning, isBlocked, unblockPlayer } from '../lib/blocks';
 import { useAuth } from '../auth';
 import { usePlay } from '../data';
 import { useLoad, useNow } from '../hooks';
@@ -90,6 +92,55 @@ export function PlayerPage() {
         </p>
       )}
       {!isMe && facts.length === 0 && !p.bio && <p className="muted">{p.display_name} hasn't filled in a profile yet.</p>}
+      {!isMe && <BlockControl playerId={p.id} name={p.display_name} />}
     </article>
+  );
+}
+
+/** Block / unblock this player. Quiet link at the bottom of their card. */
+function BlockControl({ playerId, name }: { playerId: string; name: string }) {
+  const blocked = useLoad(() => isBlocked(playerId), [playerId]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function run(action: () => Promise<void>, failure: string) {
+    setBusy(true);
+    setError(null);
+    try {
+      await action();
+      await blocked.reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : failure);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (blocked.loading && blocked.data === undefined) return null;
+
+  return (
+    <section className="block-control">
+      {blocked.data ? (
+        <>
+          <p className="muted">
+            You blocked {name}. You won't see each other's court chat messages.
+          </p>
+          <button className="btn btn-quiet" disabled={busy} onClick={() => void run(() => unblockPlayer(playerId), 'Could not unblock.')}>
+            {busy ? 'Unblocking…' : `Unblock ${name}`}
+          </button>
+        </>
+      ) : (
+        <button
+          className="link-button danger-link"
+          disabled={busy}
+          onClick={() => {
+            if (window.confirm(blockWarning(name))) void run(() => blockPlayer(playerId), 'Could not block.');
+          }}
+        >
+          Block {name}
+        </button>
+      )}
+      {(error || blocked.error) && <ErrorNote>{error ?? blocked.error}</ErrorNote>}
+    </section>
   );
 }

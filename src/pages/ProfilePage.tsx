@@ -4,6 +4,8 @@ import { useAuth } from '../auth';
 import { usePlay } from '../data';
 import { currentSubscription, showTestAlert, turnOffAlerts, turnOnAlerts } from '../alerts';
 import { deleteMyAccount, updateProfile, uploadAvatar } from '../lib/api';
+import { getMyBlocks, unblockPlayer } from '../lib/blocks';
+import { useLoad } from '../hooks';
 import { squarePhoto } from '../lib/image';
 import { POSITIONS, SKILLS } from '../lib/profile';
 import { currentAlertSupport } from '../lib/push';
@@ -43,9 +45,51 @@ export function ProfilePage() {
         <Link to="/forgot-email">Account recovery help</Link>
       </section>
       <AlertSettings />
+      <BlockedPlayers />
       <SignOut />
       <DeleteAccount />
     </div>
+  );
+}
+
+/** Players you've blocked, with an Unblock button. Hidden until you block someone. */
+function BlockedPlayers() {
+  const blocks = useLoad(() => getMyBlocks(), []);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const list = blocks.data ?? [];
+  if (!blocks.error && list.length === 0) return null;
+
+  async function unblock(id: string) {
+    setBusyId(id);
+    setError(null);
+    try {
+      await unblockPlayer(id);
+      await blocks.reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not unblock.');
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  return (
+    <section className="panel" id="blocked">
+      <h2>Blocked players</h2>
+      <p className="fine">You don't see each other's court chat messages, and they can't be added to your team.</p>
+      {(error || blocks.error) && <ErrorNote>{error ?? blocks.error}</ErrorNote>}
+      <ul className="blocked-list">
+        {list.map((b) => (
+          <li key={b.blocked_id}>
+            <Avatar name={b.profiles?.display_name ?? 'Player'} url={b.profiles?.avatar_url ?? null} size={32} seed={b.blocked_id} />
+            <span>{b.profiles?.display_name ?? 'Player'}</span>
+            <button className="btn btn-quiet" disabled={busyId === b.blocked_id} onClick={() => void unblock(b.blocked_id)}>
+              {busyId === b.blocked_id ? 'Unblocking…' : 'Unblock'}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
