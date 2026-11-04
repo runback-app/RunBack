@@ -58,7 +58,7 @@ export function LoginPage() {
     setBusy(true);
     try {
       if (mode === 'signup') {
-        const { needsEmailConfirm } = await signUp(name, email, password);
+        const { needsEmailConfirm } = await signUp(name, email, password, next);
         if (needsEmailConfirm) setCheckEmail(true);
       } else {
         await signIn(email, password);

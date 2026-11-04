@@ -124,7 +124,7 @@ try {
   assert.equal(ok(await member.from('crew_messages').select('id').eq('crew_id', crew.id), 'Removed member cannot read chat').length, 0);
   assert((await member.rpc('set_run_rsvp', { p_run_id: run.id, p_status: 'going' })).error);
   ok(await member.rpc('join_crew', { p_code: crew.invite_code }), 'Rejoin test crew');
-  const newCode = randomBytes(5).toString('hex');
+  const newCode = randomBytes(10).toString('hex');
   ok(await leader.from('crews').update({ invite_code: newCode }).eq('id', crew.id), 'Replace invite');
   assert.equal(ok(await anon.rpc('crew_preview', { p_code: crew.invite_code }), 'Old invite is invalid').length, 0);
   fixture.inviteCode = newCode; await save();

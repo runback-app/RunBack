@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { inviteUrl, parseInviteCode, smsHref } from './invite';
+import { inviteUrl, parseInviteCode, signupRedirect, smsHref } from './invite';
 
 describe('inviteUrl', () => {
   it('builds a join link', () => {
@@ -26,9 +26,26 @@ describe('parseInviteCode', () => {
     expect(parseInviteCode('https://runback.vercel.app/join/A1B2C3D4E5?x=1')).toBe('a1b2c3d4e5');
   });
 
+  it('accepts replacement invite links as well as original codes', () => {
+    expect(parseInviteCode('https://runback.net/join/a1b2c3d4e5f60718293a')).toBe('a1b2c3d4e5f60718293a');
+    expect(parseInviteCode('a1b2c3d4e5f60718293')).toBeNull();
+  });
+
   it('rejects junk', () => {
     expect(parseInviteCode('')).toBeNull();
     expect(parseInviteCode('hello')).toBeNull();
     expect(parseInviteCode("'; drop table crews;--")).toBeNull();
+  });
+});
+
+describe('signupRedirect', () => {
+  it('returns to the same crew after email confirmation', () => {
+    expect(signupRedirect('https://runback.net', '/join/a1b2c3d4e5')).toBe('https://runback.net/join/a1b2c3d4e5');
+    expect(signupRedirect('https://runback.net', '/join/a1b2c3d4e5f60718293a')).toBe('https://runback.net/join/a1b2c3d4e5f60718293a');
+  });
+  it('never sends a confirmation to an external or malformed destination', () => {
+    for (const next of ['https://example.com/join/a1b2c3d4e5', '//example.com', '/join/invalid', '/', '/privacy#contact']) {
+      expect(signupRedirect('https://runback.net', next)).toBe('https://runback.net');
+    }
   });
 });

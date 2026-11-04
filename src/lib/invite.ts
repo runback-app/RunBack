@@ -2,6 +2,13 @@ export function inviteUrl(origin: string, code: string): string {
   return `${origin.replace(/\/+$/, '')}/join/${code}`;
 }
 
+/** Preserve a crew invitation when confirmation is opened on another device. */
+export function signupRedirect(origin: string, next: string): string {
+  const match = /^\/join\/([0-9a-f]+)$/i.exec(next);
+  const code = match ? parseInviteCode(match[1]) : null;
+  return code ? inviteUrl(origin, code) : origin;
+}
+
 export function inviteMessage(crewName: string, url: string): string {
   return `Run with ${crewName} on Runback: ${url}`;
 }
@@ -18,5 +25,6 @@ export function parseInviteCode(input: string): string | null {
   const path = trimmed.split(/[?#]/)[0];
   const last = path.split('/').filter(Boolean).pop() ?? '';
   const code = last.toLowerCase();
-  return /^[0-9a-f]{10}$/.test(code) ? code : null;
+  // Original invites have 10 hex characters; replaced links have 20.
+  return /^(?:[0-9a-f]{10}|[0-9a-f]{20})$/.test(code) ? code : null;
 }

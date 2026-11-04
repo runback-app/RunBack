@@ -2,7 +2,9 @@
 
 See who's at the court before you go. Check in at a Tucson court, see who's playing, build a crew you can invite with a text, and get an alert when a run starts.
 
-Live site: https://runback-dun.vercel.app
+Live site: https://runback.net (the original https://runback-dun.vercel.app still works).
+
+[MVP status and remaining checks](docs/MVP_STATUS.md) · [Where to sign in, edit, deploy, and handle recovery](docs/OPERATIONS.md)
 
 ## What it does
 
@@ -54,7 +56,7 @@ Other commands: `npm test` runs the tests, `npm run build` makes the production 
 
 ## To do
 
-- [ ] **Turn email confirmation back on.** It's off right now because Supabase's free email only sends to the project's team. To fix: buy a domain, set up an email service (Resend has a free tier), add it under Supabase > Authentication > SMTP, then turn **Confirm email** back on.
+- [ ] **Finish SMTP, test real inboxes, then turn email confirmation back on.** `runback.net` is connected and verified in Resend. The remaining setup is a domain-restricted sending key in the shared Supabase project's SMTP settings. Confirmation is still off until delivery is tested.
 - [ ] Complete real inbox tests of signup confirmation and password reset after SMTP is configured. Reset UI, password matching, and show/hide controls are implemented.
 - [x] Forgot-email recovery at `/forgot-email`, with a private manual-review inbox and sign-in email shown only on the account owner's profile. Requests do not reveal or change accounts automatically.
 - [ ] Optional player caps and waitlists.
@@ -70,7 +72,9 @@ Other commands: `npm test` runs the tests, `npm run build` makes the production 
 
 Run `npm test` and `npm run build`. `supabase/tests/runs_chat_permissions.sql` exercises recurrence, RSVP impersonation prevention, member-only chats, leader-only changes/photos, reminders and cancellation notices in a rolled-back transaction. It needs one existing crew with two members. It does not retain test data or send pushes.
 
-In Supabase Auth URL Configuration, allow `https://runback-dun.vercel.app/reset-password` and set the Site URL to the live app. A custom SMTP sender is required before promising verification/reset email delivery to players outside the Supabase project team. Do not enable email confirmation until that sender is ready.
+Supabase Site URL is `https://runback.net`. Root, `/reset-password`, and `/join/*` redirects are allowed for both `runback.net` and the original Vercel address. The signup redirect returns a player to their crew invitation after email confirmation. A custom SMTP sender is required before promising verification/reset email delivery to players outside the Supabase project team. Do not enable email confirmation until that sender is ready.
+
+The `20261104011300_atomic_run_rsvp.sql` migration fixes PostgREST upsert conflicts without granting updates to immutable attendance keys. The `20261104011835_crew_photo_path_permissions.sql` migration qualifies the object path in crew photo policies. Both were applied and verified against production using disposable fixtures. The public API walkthrough is `scripts/mvp-smoke.mjs`; see the operations guide before running it.
 
 ## Account recovery operations
 

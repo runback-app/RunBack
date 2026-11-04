@@ -156,8 +156,12 @@ export async function uploadAvatar(userId: string, photo: Blob): Promise<string>
  * Photos live in file storage, so they're removed first; the database handles the rest.
  */
 export async function deleteMyAccount(userId: string): Promise<void> {
+  const { data: crews, error: crewError } = await supabase.from('crews').select('id').eq('created_by', userId);
+  if (crewError) fail(crewError, "Couldn't check your crew photos. Try again.");
+  for (const crew of crews ?? []) await removeCrewPhotos(crew.id);
   const bucket = supabase.storage.from('avatars');
-  const { data: files } = await bucket.list(userId);
+  const { data: files, error: listError } = await bucket.list(userId);
+  if (listError) fail(listError, "Couldn't check your profile photo. Try again.");
   const paths = (files ?? []).map((f) => `${userId}/${f.name}`);
   if (paths.length) {
     const { error: removeError } = await bucket.remove(paths);
@@ -248,6 +252,20 @@ export async function leaveCrew(crewId: string, userId: string): Promise<void> {
 }
 
 export async function deleteCrew(crewId: string): Promise<void> {
+  await removeCrewPhotos(crewId);
   const { error } = await supabase.from('crews').delete().eq('id', crewId);
   if (error) fail(error, "Couldn't delete the crew.");
+}
+
+/** Remove files before deleting their crew, while owner access still exists. */
+async function removeCrewPhotos(crewId: string): Promise<void> {
+  const bucket = supabase.storage.from('crew-photos');
+  for (;;) {
+    const { data: files, error } = await bucket.list(crewId, { limit: 100 });
+    if (error) fail(error, "Couldn't check the crew photos. Try again.");
+    if (!files?.length) return;
+    const { error: removeError } = await bucket.remove(files.map(file => `${crewId}/${file.name}`));
+    if (removeError) fail(removeError, "Couldn't remove the crew photo. Try again.");
+    if (files.length < 100) return;
+  }
 }

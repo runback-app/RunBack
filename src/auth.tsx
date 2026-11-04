@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
 import { fetchProfile } from './lib/api';
 import type { Profile } from './lib/types';
+import { signupRedirect } from './lib/invite';
 
 type AuthState = {
   ready: boolean;
@@ -11,7 +12,7 @@ type AuthState = {
   profile: Profile | null;
   refreshProfile: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (name: string, email: string, password: string) => Promise<{ needsEmailConfirm: boolean }>;
+  signUp: (name: string, email: string, password: string, next?: string) => Promise<{ needsEmailConfirm: boolean }>;
   signOut: () => Promise<void>;
 };
 
@@ -78,13 +79,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
         if (error) throw new Error(friendlyAuthError(error.message));
       },
-      async signUp(name, email, password) {
+      async signUp(name, email, password, next = '/') {
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
           options: {
             data: { display_name: name.trim() },
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: signupRedirect(window.location.origin, next),
           },
         });
         if (error) throw new Error(friendlyAuthError(error.message));
