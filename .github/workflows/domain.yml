@@ -1,0 +1,27 @@
+name: Connect RunBack domain
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/domain.yml
+      - scripts/configure-domain.mjs
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  connect:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: runback-domain
+      cancel-in-progress: false
+    env:
+      VERCEL_ORG_ID: team_FusnTNe1maWkO65xoxBQeKPb
+      VERCEL_PROJECT_ID: prj_YQLqykqiUqYTIfYsbMqotLHMS3mD
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Connect and verify owned domain
+        run: node scripts/configure-domain.mjs
