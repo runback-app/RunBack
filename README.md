@@ -2,7 +2,7 @@
 
 See who's at the court before you go. Check in at a Tucson court, see who's playing, build a crew you can invite with a text, and get an alert when a run starts.
 
-Live site: https://runback.net (the original https://runback-dun.vercel.app still works).
+Live site: https://runback.net
 
 [MVP status and remaining checks](docs/MVP_STATUS.md) · [Where to sign in, edit, deploy, and handle recovery](docs/OPERATIONS.md)
 

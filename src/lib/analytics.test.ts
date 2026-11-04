@@ -3,8 +3,8 @@ import { cleanPageUrl } from './analytics';
 
 describe('cleanPageUrl', () => {
   it('hides invite codes', () => {
-    expect(cleanPageUrl('https://runback-tucson.vercel.app/join/a1b2c3d4e5')).toBe(
-      'https://runback-tucson.vercel.app/join/[code]',
+    expect(cleanPageUrl('https://runback.net/join/a1b2c3d4e5')).toBe(
+      'https://runback.net/join/[code]',
     );
   });
 
@@ -16,14 +16,14 @@ describe('cleanPageUrl', () => {
   it('hides run identifiers',()=>{expect(cleanPageUrl('/run/private-id')).toBe('/run/[id]');});
 
   it('drops query strings and hashes', () => {
-    expect(cleanPageUrl('https://runback-tucson.vercel.app/login?next=/join/abc#x')).toBe(
-      'https://runback-tucson.vercel.app/login',
+    expect(cleanPageUrl('https://runback.net/login?next=/join/abc#x')).toBe(
+      'https://runback.net/login',
     );
   });
 
   it('leaves normal pages alone', () => {
-    expect(cleanPageUrl('https://runback-tucson.vercel.app/court/reid-park')).toBe(
-      'https://runback-tucson.vercel.app/court/reid-park',
+    expect(cleanPageUrl('https://runback.net/court/reid-park')).toBe(
+      'https://runback.net/court/reid-park',
     );
   });
 });

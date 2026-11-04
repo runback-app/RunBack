@@ -6,7 +6,7 @@ import webpush from 'npm:web-push@3.6.7';
 import { createClient } from 'npm:@supabase/supabase-js@2.118.0';
 
 const VAPID_PUBLIC_KEY = 'BOdtan8KG-S6in5lBCDbcJgdxu7E9KTUp_gK-GPnHI_RbAqM_3H1W3ikdGApS0rMq4TsJBaDHIpffGnVr57ZOB8';
-const VAPID_SUBJECT = 'https://runback-tucson.vercel.app';
+const VAPID_SUBJECT = 'https://runback.net';
 
 type Target = { endpoint: string; p256dh: string; auth: string; title: string; body: string; url: string };
 
