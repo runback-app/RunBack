@@ -1,14 +1,14 @@
 import { lazy, Suspense, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { usePlay } from '../data';
 import { useNow } from '../hooks';
 import { courtStatus, weekRows } from '../lib/hours';
-import { playersHere } from '../lib/run';
-import { clockTime, isLive } from '../lib/time';
+import { isLive } from '../lib/time';
 import type { Court } from '../lib/types';
-import { CheckInControl, ErrorNote, FavoriteButton, Loading, PlayerRow, RunMeter, StatusPill } from '../components';
+import { CheckInControl, ErrorNote, FavoriteButton, Loading, StatusPill } from '../components';
 import { CourtChat } from '../CourtChat';
+import { GotNext } from '../GotNext';
 
 const CourtMap = lazy(() => import('../CourtMap'));
 
@@ -16,7 +16,6 @@ export function CourtPage() {
   const { slug } = useParams();
   const { userId } = useAuth();
   const { courts, courtsLoading, activity, live, liveLoaded } = usePlay();
-  const location = useLocation();
   const now = useNow();
   const court = courts.find((c) => c.slug === slug);
 
@@ -51,42 +50,32 @@ export function CourtPage() {
         <FavoriteButton court={court} />
       </div>
       {court.closure_note && (!court.closure_until || new Date(court.closure_until)>now) ? <p role="status" className="error-note">Temporary closure: {court.closure_note}</p> : <StatusPill status={courtStatus(court.hours, now)} />}
-      <section className="panel"><h2>Before you go</h2><p>{court.access_note ?? 'Entry rules and fees have not been verified. Check with the facility before travelling.'}</p><p>{court.hoop_count ? `${court.hoop_count} hoops` : 'Hoop count not verified'}</p><p className="fine">Counts show Runback check-ins, not everyone physically at the court. Posted hours may change for holidays and events.</p></section>
-
-      <div className="panel">
-        <p className="court-count big">{playersHere(count)}</p>
-        <RunMeter players={count} size="lg" />
-        <CheckInControl court={court} />
+      <div className="court-hero">
+        <div className="hero-count">
+          <span className={count > 0 ? 'hero-num live' : 'hero-num'}>{count}</span>
+          <span className="hero-label">
+            Here
+            <br />
+            now
+          </span>
+        </div>
+        <CheckInControl court={court} compact />
       </div>
+      <p className="fine hero-fine">Updated just now · counts are Runback check-ins</p>
+      {userId && (
+        <details className="checkin-more">
+          <summary>How long are you playing?</summary>
+          <CheckInControl court={court} />
+        </details>
+      )}
 
-      <section className="subsection">
-        <h2>Who's here</h2>
-        {!userId ? (
-          <p className="muted">
-            <Link to={`/login?next=${encodeURIComponent(location.pathname)}`}>Sign in</Link> to see who's playing.
-          </p>
-        ) : !liveLoaded && players.length === 0 ? (
-          <Loading />
-        ) : players.length === 0 ? (
-          <p className="muted">Nobody yet. Check in and let people know there's a run.</p>
-        ) : (
-          <ul className="players card-list">
-            {players.map((p) => (
-              <PlayerRow
-                key={p.id}
-                userId={p.user_id}
-                profile={p.profiles}
-                you={p.user_id === userId}
-                detail={`until ${clockTime(p.expires_at)}`}
-              />
-            ))}
-          </ul>
-        )}
-      </section>
+      <GotNext court={court} />
 
       <CourtChat courtId={court.id} courtName={court.name} />
 
       {userId && <CourtAlerts court={court} />}
+
+      <section className="panel"><h2>Before you go</h2><p>{court.access_note ?? 'Entry rules and fees have not been verified. Check with the facility before travelling.'}</p><p>{court.hoop_count ? `${court.hoop_count} hoops` : 'Hoop count not verified'}</p><p className="fine">Posted hours may change for holidays and events.</p></section>
 
       <section className="subsection">
         <h2>Hours</h2>

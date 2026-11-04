@@ -4,6 +4,7 @@ import { useAuth } from '../auth';
 import { usePlay } from '../data';
 import { useNow } from '../hooks';
 import { courtStatus } from '../lib/hours';
+import { courtTag, freeAgentLine } from '../lib/line';
 import { isLive, timeAgo } from '../lib/time';
 import type { Court } from '../lib/types';
 import { ErrorNote, Loading, PlayerRow } from '../components';
@@ -36,9 +37,9 @@ export function CourtsPage() {
       )}
 
       <header className="home-head">
-        <h1 className="page-title">Courts</h1>
+        <h1 className="page-title">Who's running</h1>
         <p className="home-sub">
-          {total === 0 ? 'Tucson · Nobody checked in yet' : `Tucson · ${total} playing right now`}
+          {total === 0 ? 'Tucson · Nobody checked in yet' : `Tucson · ${total} hoopers out · updated just now`}
         </p>
       </header>
 
@@ -116,7 +117,7 @@ export function CourtsPage() {
 }
 
 function CourtList({ courts, now }: { courts: Court[]; now: Date }) {
-  const { activity } = usePlay();
+  const { activity, lineCounts } = usePlay();
   if (courts.length === 0) return null;
   // Busiest courts first; ties keep the usual order.
   const sorted = [...courts].sort((a, b) => (activity[b.id] ?? 0) - (activity[a.id] ?? 0));
@@ -124,28 +125,24 @@ function CourtList({ courts, now }: { courts: Court[]; now: Date }) {
     <ul className="court-list">
       {sorted.map((court) => {
         const players = activity[court.id] ?? 0;
+        const line = lineCounts[court.id];
+        const tag = courtTag(players, line?.teams ?? 0);
         const status = courtStatus(court.hours, now);
         return (
           <li key={court.id}>
-            <Link to={`/court/${court.slug}`} className="court-row">
+            <Link to={`/court/${court.slug}`} className={tag.tone === 'wait' ? 'court-row busy' : 'court-row'}>
               <span className="court-row-text">
                 <span className="court-row-name">{court.name}</span>
-                <span className="court-row-meta">
-                  {court.kind === 'indoor' ? 'Indoor' : 'Outdoor'} · {court.area}
-                </span>
                 <span className={`court-row-meta status-${status.tone}`}>{status.label}</span>
+                <span className={`line-tag tag-${tag.tone}`}>{tag.label}</span>
+                {players > 0 && line && line.freeAgents > 0 && (
+                  <span className="court-row-meta">{freeAgentLine(line.freeAgents)}</span>
+                )}
               </span>
-              {players > 0 ? (
-                <span className="count-pill">
-                  <span className="live-dot" aria-hidden="true" />
-                  {players} playing
-                </span>
-              ) : (
-                <span className="count-empty">Empty</span>
-              )}
-              <svg className="chev" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 6l6 6-6 6" />
-              </svg>
+              <span className="court-row-count">
+                <span className={players > 0 ? 'court-row-num live' : 'court-row-num'}>{players}</span>
+                <span className="court-row-here">Here</span>
+              </span>
             </Link>
           </li>
         );

@@ -1,5 +1,6 @@
-// Sends phone/computer alerts after someone checks in.
-// The database calls this right after each check-in with { checkin_id }.
+// Sends phone/computer alerts after someone checks in, for crew runs, and for Got next teams.
+// The database calls this with { checkin_id }, { notification_id } (crew runs),
+// or { team_notification_id } ("You're up next" / "You got picked up").
 // Who gets alerted is decided in SQL (public.alert_targets), which also makes sure
 // each check-in is only handled once, so calling this twice does nothing extra.
 import webpush from 'npm:web-push@3.6.7';
@@ -38,20 +39,25 @@ Deno.serve(async (req) => {
 
   let checkinId: unknown;
   let notificationId: unknown;
+  let teamNotificationId: unknown;
   try {
     const payload = await req.json();
     checkinId = payload?.checkin_id;
     notificationId = payload?.notification_id;
+    teamNotificationId = payload?.team_notification_id;
   } catch {
     return reply({ error: 'Send JSON with checkin_id' }, 400);
   }
-  if ((typeof checkinId !== 'string' || !/^[0-9a-f-]{36}$/i.test(checkinId)) && (typeof notificationId !== 'string' || !/^[0-9a-f-]{36}$/i.test(notificationId))) {
+  const isId = (v: unknown): v is string => typeof v === 'string' && /^[0-9a-f-]{36}$/i.test(v);
+  if (!isId(checkinId) && !isId(notificationId) && !isId(teamNotificationId)) {
     return reply({ error: 'Send JSON with checkin_id' }, 400);
   }
 
-  const { data, error } = typeof notificationId === 'string'
-    ? await admin.rpc('run_alert_targets', { p_notification_id: notificationId })
-    : await admin.rpc('alert_targets', { p_checkin_id: checkinId });
+  const { data, error } = isId(teamNotificationId)
+    ? await admin.rpc('team_alert_targets', { p_notification_id: teamNotificationId })
+    : isId(notificationId)
+      ? await admin.rpc('run_alert_targets', { p_notification_id: notificationId })
+      : await admin.rpc('alert_targets', { p_checkin_id: checkinId });
   if (error) {
     console.error('alert_targets failed', error.message);
     return reply({ error: 'Lookup failed' }, 500);

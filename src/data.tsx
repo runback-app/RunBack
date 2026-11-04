@@ -6,6 +6,7 @@ import {
   fetchActivity,
   fetchCourts,
   fetchFavorites,
+  fetchLineCounts,
   fetchLiveCheckins,
   fetchMyCheckin,
   removeFavorite,
@@ -21,6 +22,8 @@ type PlayState = {
   courtsLoading: boolean;
   /** Player count per court id (public). */
   activity: Record<string, number>;
+  /** Teams waiting and free agents per court (public). */
+  lineCounts: Record<string, { teams: number; freeAgents: number }>;
   /** Everyone checked in right now, with names and photos (signed-in only). */
   live: LiveCheckin[];
   liveLoaded: boolean;
@@ -42,18 +45,20 @@ export function PlayProvider({ children }: { children: ReactNode }) {
   const { userId } = useAuth();
   const courts = useLoad(fetchCourts, []);
   const activity = useLoad(fetchActivity, [], 30000);
+  const lines = useLoad(fetchLineCounts, [], 30000);
   const mine = useLoad(() => (userId ? fetchMyCheckin(userId) : none), [userId], 60000);
   const live = useLoad(() => (userId ? fetchLiveCheckins() : Promise.resolve([])), [userId], 30000);
   const favs = useLoad(() => (userId ? fetchFavorites() : Promise.resolve([])), [userId]);
 
   const reloadActivity = activity.reload;
+  const reloadLines = lines.reload;
   const reloadMine = mine.reload;
   const reloadLive = live.reload;
   const reloadFavs = favs.reload;
 
   const refresh = useCallback(async () => {
-    await Promise.all([reloadActivity(), reloadMine(), reloadLive()]);
-  }, [reloadActivity, reloadMine, reloadLive]);
+    await Promise.all([reloadActivity(), reloadLines(), reloadMine(), reloadLive()]);
+  }, [reloadActivity, reloadLines, reloadMine, reloadLive]);
 
   const startCheckin = useCallback(
     async (courtId: string, minutes: number) => {
@@ -98,6 +103,7 @@ export function PlayProvider({ children }: { children: ReactNode }) {
       courtsError: courts.error,
       courtsLoading: courts.loading,
       activity: activity.data ?? {},
+      lineCounts: lines.data ?? {},
       live: live.data ?? [],
       liveLoaded: live.data !== undefined && !live.loading,
       myCheckin,
@@ -115,6 +121,7 @@ export function PlayProvider({ children }: { children: ReactNode }) {
       courts.error,
       courts.loading,
       activity.data,
+      lines.data,
       live.data,
       live.loading,
       myCheckin,

@@ -16,8 +16,8 @@ function escapeHtml(text: string): string {
 }
 
 function prefersDark(): boolean {
-  // The app is light only for now, so the map stays light too.
-  return false;
+  // The app uses the dark "Night court" look, so the map is dark too.
+  return true;
 }
 
 /** Map of courts. Each pin shows how many people are checked in. Tapping a pin opens the court. */
