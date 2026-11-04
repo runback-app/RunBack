@@ -35,7 +35,8 @@ export function ago(iso: string, now: Date): string {
 export async function getCourtMessages(courtId: string): Promise<CourtMessage[]> {
   const { data, error } = await db
     .from('court_messages')
-    .select('id,user_id,body,created_at,profiles(display_name,avatar_url,position,skill,height_in)')
+    // Reports also link messages to profiles; select the author relationship explicitly.
+    .select('id,user_id,body,created_at,profiles!court_messages_user_id_fkey(display_name,avatar_url,position,skill,height_in)')
     .eq('court_id', courtId)
     .order('created_at', { ascending: false })
     .limit(100);
