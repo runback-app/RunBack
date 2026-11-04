@@ -30,11 +30,11 @@ The live Supabase project is **ioxmdthiblgudygedjmc** in **NickDotCom88's Org**.
 
 To undo a broken code release, revert the offending code commit in GitHub and let Checks deploy that revert. Do not reset/force-push the shared branch. Database changes need a separate reviewed correction; rolling back frontend code does not roll back production data. The new RSVP function and photo-policy fix are additive/corrective changes and should remain applied. If deployment fails because the Vercel token expired, Nick must renew the existing `VERCEL_TOKEN` repository secret. Do not put it in source code.
 
-## Finish account email delivery
+## Account email delivery
 
 The domain is verified in Resend; DNS includes DKIM, the requested sending CNAME records, and a monitoring DMARC record. Receiving mail is not enabled: buying the domain did not create an inbox at `@runback.net`.
 
-Create a Resend key named **RunBack account emails**, restricted to **Sending access** for **runback.net**. Configure only the shared Supabase project's Authentication → Emails → SMTP Settings:
+The Resend key **RunBack account emails** has been created with **Sending access** restricted to **runback.net**. It is configured only in the shared Supabase project's Authentication → Emails → SMTP Settings:
 
 | Setting | Value |
 | --- | --- |
@@ -46,6 +46,8 @@ Create a Resend key named **RunBack account emails**, restricted to **Sending ac
 | Password | The restricted Resend key |
 
 Keep the key only in the SMTP password field. Leave click/open tracking off for authentication links. Keep the existing auth email rate limits during the pilot; revisit them if Resend logs show throttling.
+
+Branded reset and signup-confirmation HTML is versioned in `supabase/templates/`; the matching subjects and dashboard paths are in its README. Those files are backups of the applied dashboard configuration, not an automatic deployment mechanism. SMTP is enabled, and Resend reported the first branded reset email delivered at about 8:28 PM Tucson time on November 3. The sender was `RunBack <noreply@runback.net>` and the recovery link returned to the correct app. Provider delivery does not establish inbox placement or completion of a new password change; Sanjay confirmed his earlier reset/password-change test worked before this sender update.
 
 Before enabling signup confirmation, test reset delivery to an ordinary non-team inbox: request the link from `/login`, verify delivery in Resend and the inbox/spam folder, open the newest link, have the account owner choose a password, then sign out and sign back in. Test an expired/used link as well. Then enable Confirm email and test a new signup through a crew invitation, including opening the confirmation on another device. If delivery fails, keep the pilot paused; do not remove verification to work around mail problems.
 

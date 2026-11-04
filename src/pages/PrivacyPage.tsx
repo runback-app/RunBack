@@ -84,7 +84,7 @@ export function PrivacyPage() {
 
       <h2>Services we use</h2>
       <p>
-        Supabase stores the data. Vercel runs the website and counts page views. Maps come from OpenStreetMap, the
+        Supabase stores the data. Resend delivers account emails. Vercel runs the website and counts page views. Maps come from OpenStreetMap, the
         lettering from Google Fonts, and alerts are delivered by Apple, Google, or Mozilla depending on your device.
         These services see basic technical info, like your IP address, when your browser loads from them.
       </p>

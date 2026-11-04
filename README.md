@@ -56,7 +56,8 @@ Other commands: `npm test` runs the tests, `npm run build` makes the production 
 
 ## To do
 
-- [ ] **Finish SMTP, test real inboxes, then turn email confirmation back on.** `runback.net` is connected and verified in Resend. The remaining setup is a domain-restricted sending key in the shared Supabase project's SMTP settings. Confirmation is still off until delivery is tested.
+- [x] **Connect branded account email.** Custom SMTP sends as `RunBack <noreply@runback.net>` through Resend with a key restricted to this domain. The first branded reset was reported delivered, with the correct app redirect. Templates are backed up in `supabase/templates/`.
+- [ ] Finish a fresh non-team inbox reset/password-change test, then enable and test signup confirmation. Sanjay's original reset test worked before the sender change; the branded delivery test passed afterward.
 - [ ] Complete real inbox tests of signup confirmation and password reset after SMTP is configured. Reset UI, password matching, and show/hide controls are implemented.
 - [x] Forgot-email recovery at `/forgot-email`, with a private manual-review inbox and sign-in email shown only on the account owner's profile. Requests do not reveal or change accounts automatically.
 - [ ] Optional player caps and waitlists.
