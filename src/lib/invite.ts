@@ -4,6 +4,8 @@ export function inviteUrl(origin: string, code: string): string {
 
 /** Preserve a crew invitation when confirmation is opened on another device. */
 export function signupRedirect(origin: string, next: string): string {
+  const friend = /^\/add\/([a-z0-9_]{3,20})$/i.exec(next);
+  if (friend) return `${origin.replace(/\/+$/, '')}/add/${friend[1].toLowerCase()}`;
   const match = /^\/join\/([0-9a-f]+)$/i.exec(next);
   const code = match ? parseInviteCode(match[1]) : null;
   return code ? inviteUrl(origin, code) : origin;

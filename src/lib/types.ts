@@ -21,6 +21,7 @@ export type Court = {
 export type Profile = {
   id: string;
   display_name: string;
+  username: string;
   position: string | null;
   skill: string | null;
   height_in: number | null;

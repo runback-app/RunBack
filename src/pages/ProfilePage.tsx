@@ -8,6 +8,7 @@ import { getMyBlocks, unblockPlayer } from '../lib/blocks';
 import { useLoad } from '../hooks';
 import { squarePhoto } from '../lib/image';
 import { POSITIONS, SKILLS } from '../lib/profile';
+import { usernameProblem } from '../lib/friends';
 import { currentAlertSupport } from '../lib/push';
 import { Avatar, ErrorNote } from '../components';
 
@@ -43,6 +44,12 @@ export function ProfilePage() {
         <p>{session?.user.email}</p>
         <p className="fine">Only you can see this here. Save it in your password manager so you can get back into your account.</p>
         <Link to="/forgot-email">Account recovery help</Link>
+      </section>
+      <section className="panel">
+        <h2>Friends</h2>
+        <p>
+          <Link to="/friends">Find friends and see your friends list</Link>
+        </p>
       </section>
       <AlertSettings />
       <BlockedPlayers />
@@ -216,6 +223,7 @@ function ProfileForm() {
   const { userId, profile, refreshProfile } = useAuth();
   const { courts } = usePlay();
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [position, setPosition] = useState('');
   const [skill, setSkill] = useState('');
   const [feet, setFeet] = useState('');
@@ -229,6 +237,7 @@ function ProfileForm() {
   useEffect(() => {
     if (!profile) return;
     setName(profile.display_name);
+    setUsername(profile.username);
     setPosition(profile.position ?? '');
     setSkill(profile.skill ?? '');
     setFeet(profile.height_in ? String(Math.floor(profile.height_in / 12)) : '');
@@ -244,6 +253,11 @@ function ProfileForm() {
       setError('Add the name people know you by.');
       return;
     }
+    const usernameNote = usernameProblem(username);
+    if (usernameNote) {
+      setError(`Username: ${usernameNote}`);
+      return;
+    }
     const height = feet ? Number(feet) * 12 + Number(inches || 0) : null;
     setBusy(true);
     setError(null);
@@ -251,6 +265,7 @@ function ProfileForm() {
     try {
       await updateProfile(userId, {
         display_name: name.trim(),
+        username: username.trim().replace(/^@/, '').toLowerCase(),
         position: position || null,
         skill: skill || null,
         height_in: height,
@@ -271,6 +286,18 @@ function ProfileForm() {
       <label className="field">
         <span>Name other players see</span>
         <input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} />
+      </label>
+
+      <label className="field">
+        <span>Username (friends search for this)</span>
+        <input
+          value={username}
+          onChange={(e) => setUsername(e.target.value.replace(/\s/g, '').toLowerCase())}
+          maxLength={21}
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+        />
       </label>
 
       <fieldset className="choice">

@@ -151,7 +151,7 @@ export async function updateFavorite(
 export async function fetchProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, display_name, position, skill, height_in, home_court_id, bio, avatar_url, notify_crew, created_at')
+    .select('id, display_name, username, position, skill, height_in, home_court_id, bio, avatar_url, notify_crew, created_at')
     .eq('id', userId)
     .maybeSingle();
   if (error) {
@@ -162,7 +162,7 @@ export async function fetchProfile(userId: string): Promise<Profile | null> {
 }
 
 export type ProfileChanges = Partial<
-  Pick<Profile, 'display_name' | 'position' | 'skill' | 'height_in' | 'home_court_id' | 'bio' | 'avatar_url' | 'notify_crew'>
+  Pick<Profile, 'display_name' | 'username' | 'position' | 'skill' | 'height_in' | 'home_court_id' | 'bio' | 'avatar_url' | 'notify_crew'>
 >;
 
 export async function updateProfile(userId: string, changes: ProfileChanges): Promise<void> {
@@ -173,6 +173,8 @@ export async function updateProfile(userId: string, changes: ProfileChanges): Pr
   if (error) {
     if (/bio_check/i.test(error.message)) throw new Error('Keep your bio under 160 characters.');
     if (/display_name_check/i.test(error.message)) throw new Error('Your name needs 1 to 40 characters.');
+    if (/profiles_username_key|duplicate key/i.test(error.message)) throw new Error('That username is taken. Try another one.');
+    if (/profiles_username_format/i.test(error.message)) throw new Error('Usernames are 3 to 20 letters, numbers, or _.');
     fail(error, "Couldn't save your profile.");
   }
 }

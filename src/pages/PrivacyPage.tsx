@@ -39,6 +39,9 @@ export function PrivacyPage() {
           <strong>Court chat:</strong> messages you post in a court's chat, messages you report, and players you block.
         </li>
         <li>
+          <strong>Friends:</strong> your username, friend requests you send or get, and your friends list.
+        </li>
+        <li>
           <strong>Alerts:</strong> your starred courts and alert settings. If you turn on alerts, we store a device
           address so we can send them.
         </li>
@@ -58,9 +61,13 @@ export function PrivacyPage() {
           <strong>Anyone:</strong> courts, hours, how many people are checked in, and how many teams are waiting. No names.
         </li>
         <li>
-          <strong>Signed-in players:</strong> your name, photo, profile, the court you're checked in at right now, which
+          <strong>Signed-in players:</strong> your name, username, photo, profile, the court you're checked in at right now, which
           Got next team you're on (or that you're a free agent), and anything you post in a court chat. Who reported a
           message, and who blocked whom, is never shown.
+        </li>
+        <li>
+          <strong>Your friends list:</strong> only you can see it. A friend request is seen only by you and the
+          player you sent it to.
         </li>
         <li>
           <strong>Your crews:</strong> who's in the crew and its invite link. Anyone with the link can join, so only
