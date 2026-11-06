@@ -82,7 +82,7 @@ export function FriendsPage() {
       <section className="panel">
         <h2>Your friends{mine.length > 0 ? ` (${mine.length})` : ''}</h2>
         {mine.length === 0 ? (
-          <p className="muted">No friends yet. Search for a username above or send your friend link.</p>
+          <p className="muted">No friends yet. Search for a name above or send your friend link.</p>
         ) : (
           <ul className="friend-list">
             {mine.map((f) => (
@@ -144,7 +144,6 @@ function FriendItem({ f, children }: { f: FriendRow | PlayerHit; children: React
         <Avatar name={f.display_name} url={f.avatar_url} size={40} seed={f.id} />
         <span>
           <strong>{f.display_name}</strong>
-          <span className="muted">@{f.username}</span>
         </span>
       </Link>
       <span className="friend-actions">{children}</span>
@@ -175,12 +174,12 @@ function FindPlayers({
     <section className="panel">
       <h2>Add a friend</h2>
       <label className="field">
-        <span>Search by username or name</span>
+        <span>Search by name</span>
         <input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="@username"
+          placeholder="Their Runback name"
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
@@ -231,7 +230,7 @@ function FriendLink({ username }: { username: string }) {
     <section className="panel invite">
       <h2>Your friend link</h2>
       <p className="muted">
-        Send this to anyone. They tap it to add you. Your username is <strong>@{username}</strong> (change it on{' '}
+        Send this to anyone. They tap it to add you. Your name is <strong>{username}</strong> (change it on{' '}
         <Link to="/me">your profile</Link>).
       </p>
       <p className="invite-url">{url}</p>

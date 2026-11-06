@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { cleanUsername, friendSmsHref, friendUrl, groupFriends, usernameProblem, type FriendRow } from './friends';
 
 describe('usernames', () => {
-  it('cleans @ and capitals', () => {
-    expect(cleanUsername(' @Ray_Allen ')).toBe('ray_allen');
+  it('cleans @ and keeps capitals', () => {
+    expect(cleanUsername(' @Ray_Allen ')).toBe('Ray_Allen');
   });
   it('rejects bad ones', () => {
     expect(cleanUsername('ab')).toBeNull();

@@ -222,7 +222,6 @@ function PhotoPicker() {
 function ProfileForm() {
   const { userId, profile, refreshProfile } = useAuth();
   const { courts } = usePlay();
-  const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [position, setPosition] = useState('');
   const [skill, setSkill] = useState('');
@@ -236,7 +235,6 @@ function ProfileForm() {
 
   useEffect(() => {
     if (!profile) return;
-    setName(profile.display_name);
     setUsername(profile.username);
     setPosition(profile.position ?? '');
     setSkill(profile.skill ?? '');
@@ -249,13 +247,9 @@ function ProfileForm() {
   async function save(e: FormEvent) {
     e.preventDefault();
     if (!userId) return;
-    if (!name.trim()) {
-      setError('Add the name people know you by.');
-      return;
-    }
     const usernameNote = usernameProblem(username);
     if (usernameNote) {
-      setError(`Username: ${usernameNote}`);
+      setError(`Name: ${usernameNote}`);
       return;
     }
     const height = feet ? Number(feet) * 12 + Number(inches || 0) : null;
@@ -264,8 +258,7 @@ function ProfileForm() {
     setSaved(false);
     try {
       await updateProfile(userId, {
-        display_name: name.trim(),
-        username: username.trim().replace(/^@/, '').toLowerCase(),
+        username: username.trim().replace(/^@/, ''),
         position: position || null,
         skill: skill || null,
         height_in: height,
@@ -284,20 +277,16 @@ function ProfileForm() {
   return (
     <form className="panel form" onSubmit={save}>
       <label className="field">
-        <span>Name other players see</span>
-        <input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} />
-      </label>
-
-      <label className="field">
-        <span>Username (friends search for this)</span>
+        <span>Your name (other players see and search for this)</span>
         <input
           value={username}
-          onChange={(e) => setUsername(e.target.value.replace(/\s/g, '').toLowerCase())}
+          onChange={(e) => setUsername(e.target.value.replace(/\s/g, ''))}
           maxLength={21}
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
         />
+        <small className="fine">Letters, numbers, and _. No spaces.</small>
       </label>
 
       <fieldset className="choice">

@@ -59,7 +59,6 @@ export function PlayerPage() {
         <Avatar name={p.display_name} url={p.avatar_url} size={104} seed={p.id} />
         <div>
           <h1 className="page-title">{p.display_name}</h1>
-          <p className="muted player-username">@{p.username}</p>
           {playing && playingCourt ? (
             <p className="playing-now">
               <span className="live-dot" aria-hidden="true" /> Playing at{' '}

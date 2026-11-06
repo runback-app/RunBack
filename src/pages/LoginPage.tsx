@@ -4,6 +4,7 @@ import { useAuth } from '../auth';
 import { supabase } from '../lib/supabase';
 import { ErrorNote } from '../components';
 import { resetRequestError } from '../lib/accountRecovery';
+import { usernameProblem } from '../lib/friends';
 
 /** Only allow redirects back into this site. */
 function safeNext(value: string | null): string {
@@ -50,8 +51,9 @@ export function LoginPage() {
   async function submit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    if (mode === 'signup' && name.trim().length === 0) {
-      setError('Add the name people know you by.');
+    const nameNote = mode === 'signup' ? usernameProblem(name) : null;
+    if (nameNote) {
+      setError(`Name: ${nameNote}`);
       return;
     }
     if(mode==='signup'&&password!==confirmPassword){setError('Passwords do not match.');return;}
@@ -88,11 +90,15 @@ export function LoginPage() {
             <span>Your name</span>
             <input
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value.replace(/\s/g, ''))}
               autoComplete="nickname"
-              maxLength={40}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              maxLength={20}
               placeholder="What people call you on the court"
             />
+            <small className="fine">Letters, numbers, and _. No spaces. Friends search for this.</small>
           </label>
         )}
         <label className="field">

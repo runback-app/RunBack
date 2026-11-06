@@ -12,16 +12,20 @@ select v.id,'authenticated','authenticated',v.id::text||'@example.invalid',
   jsonb_build_object('display_name', v.n),now(),now()
 from fp, lateral (values (a,'Zq Friend Test'),(b,'Zq Friend Test'),(c,'Zq Other'),(d,'x')) v(id,n);
 
--- Usernames got made at signup: valid, unique, short names fall back to "player".
+-- Usernames got made at signup from the name (capitals kept), unique ignoring case;
+-- short names fall back to "Player". The shown name always equals the username.
 do $$ begin
-  if (select username from public.profiles where id = (select a from fp)) <> 'zqfriendtest' then
+  if (select username from public.profiles where id = (select a from fp)) <> 'ZqFriendTest' then
     raise exception 'First player did not get the plain username';
   end if;
-  if (select username from public.profiles where id = (select b from fp)) !~ '^zqfriendtest[0-9]{4}$' then
+  if (select username from public.profiles where id = (select b from fp)) !~ '^ZqFriendTest[0-9]{4}$' then
     raise exception 'Second player with the same name did not get a numbered username';
   end if;
-  if (select username from public.profiles where id = (select d from fp)) !~ '^player' then
+  if (select username from public.profiles where id = (select d from fp)) !~ '^Player' then
     raise exception 'Too-short name did not fall back to player';
+  end if;
+  if exists (select 1 from public.profiles where id in (select a from fp union all select b from fp) and display_name <> username) then
+    raise exception 'Shown name does not match username';
   end if;
 end $$;
 
@@ -33,7 +37,16 @@ set local role authenticated;
 
 -- Changing your username: format and word filter enforced, taken names refused.
 select pg_temp.as_player(c) from fp;
-update public.profiles set username = 'zq_other_guy' where id = (select c from fp);
+update public.profiles set username = 'Zq_Other_Guy' where id = (select c from fp);
+do $$ begin
+  if (select display_name from public.profiles where id = (select c from fp)) <> 'Zq_Other_Guy' then
+    raise exception 'Name did not follow the new username';
+  end if;
+  update public.profiles set display_name = 'Sneaky' where id = (select c from fp);
+  if (select display_name from public.profiles where id = (select c from fp)) <> 'Zq_Other_Guy' then
+    raise exception 'Name changed without the username';
+  end if;
+end $$;
 do $$ begin
   begin
     update public.profiles set username = 'Bad Name!' where id = (select c from fp);
@@ -60,8 +73,11 @@ do $$ begin
   if not exists (select 1 from public.search_players('@ZQ_OTHER') where id = (select c from fp)) then
     raise exception 'Search with @ and capitals failed';
   end if;
-  if not exists (select 1 from public.search_players('friend test') where id = (select b from fp)) then
-    raise exception 'Search by name failed';
+  if not exists (select 1 from public.search_players('friendtest') where id = (select b from fp)) then
+    raise exception 'Search inside a username failed';
+  end if;
+  if (select id from public.find_player('zqfriendtest')) is distinct from (select a from fp) then
+    raise exception 'Friend link lookup ignoring case failed';
   end if;
   if exists (select 1 from public.search_players('zqfriend') where id = (select a from fp)) then
     raise exception 'Search returned yourself';
