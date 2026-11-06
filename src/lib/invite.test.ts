@@ -39,6 +39,9 @@ describe('parseInviteCode', () => {
 });
 
 describe('signupRedirect', () => {
+  it('returns to the friend link after email confirmation', () => {
+    expect(signupRedirect('https://runback.net', '/add/Ray_Allen')).toBe('https://runback.net/add/ray_allen');
+  });
   it('returns to the same crew after email confirmation', () => {
     expect(signupRedirect('https://runback.net', '/join/a1b2c3d4e5')).toBe('https://runback.net/join/a1b2c3d4e5');
     expect(signupRedirect('https://runback.net', '/join/a1b2c3d4e5f60718293a')).toBe('https://runback.net/join/a1b2c3d4e5f60718293a');

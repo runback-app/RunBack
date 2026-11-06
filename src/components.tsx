@@ -304,6 +304,16 @@ export function CrewIcon() {
   );
 }
 
+export function FriendsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="10" cy="8" r="3.4" />
+      <path d="M3.5 20c.7-3.8 3.4-5.9 6.5-5.9 1.6 0 3 .5 4.2 1.4" />
+      <path d="M18 13.5v6M15 16.5h6" />
+    </svg>
+  );
+}
+
 export function YouIcon() {
   return (
     <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8">

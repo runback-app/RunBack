@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { blockPlayer, blockWarning, isBlocked, unblockPlayer } from '../lib/blocks';
+import { acceptFriendRequest, getMyFriends, removeFriend, sendFriendRequest } from '../lib/friends';
 import { useAuth } from '../auth';
 import { usePlay } from '../data';
 import { useLoad, useNow } from '../hooks';
@@ -58,6 +59,7 @@ export function PlayerPage() {
         <Avatar name={p.display_name} url={p.avatar_url} size={104} seed={p.id} />
         <div>
           <h1 className="page-title">{p.display_name}</h1>
+          <p className="muted player-username">@{p.username}</p>
           {playing && playingCourt ? (
             <p className="playing-now">
               <span className="live-dot" aria-hidden="true" /> Playing at{' '}
@@ -91,6 +93,7 @@ export function PlayerPage() {
           </Link>
         </p>
       )}
+      {!isMe && <FriendControl playerId={p.id} name={p.display_name} />}
       {!isMe && facts.length === 0 && !p.bio && <p className="muted">{p.display_name} hasn't filled in a profile yet.</p>}
       {!isMe && <BlockControl playerId={p.id} name={p.display_name} />}
     </article>
@@ -142,5 +145,60 @@ function BlockControl({ playerId, name }: { playerId: string; name: string }) {
       )}
       {(error || blocked.error) && <ErrorNote>{error ?? blocked.error}</ErrorNote>}
     </section>
+  );
+}
+
+/** Add friend / Accept / Requested / Friends, on someone else's player card. */
+function FriendControl({ playerId, name }: { playerId: string; name: string }) {
+  const friends = useLoad(() => getMyFriends(), [playerId]);
+  const blocked = useLoad(() => isBlocked(playerId), [playerId]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  if (friends.data === undefined || blocked.data === undefined || blocked.data) return null;
+  const state = friends.data.find((f) => f.id === playerId)?.state;
+
+  async function run(action: () => Promise<unknown>) {
+    setBusy(true);
+    setError(null);
+    try {
+      await action();
+      await friends.reload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Try again.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="form-actions">
+      {state === 'friends' ? (
+        <>
+          <span className="muted">You're friends</span>
+          <button
+            className="btn btn-quiet"
+            disabled={busy}
+            onClick={() => {
+              if (window.confirm(`Remove ${name} from your friends?`)) void run(() => removeFriend(playerId));
+            }}
+          >
+            Remove friend
+          </button>
+        </>
+      ) : state === 'outgoing' ? (
+        <button className="btn btn-quiet" disabled={busy} onClick={() => void run(() => removeFriend(playerId))}>
+          Requested · Cancel
+        </button>
+      ) : state === 'incoming' ? (
+        <button className="btn btn-primary" disabled={busy} onClick={() => void run(() => acceptFriendRequest(playerId))}>
+          Accept friend request
+        </button>
+      ) : (
+        <button className="btn btn-primary" disabled={busy} onClick={() => void run(() => sendFriendRequest(playerId))}>
+          {busy ? 'Adding…' : 'Add friend'}
+        </button>
+      )}
+      {error && <ErrorNote>{error}</ErrorNote>}
+    </div>
   );
 }

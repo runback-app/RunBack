@@ -6,7 +6,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { useAuth } from './auth';
 import { cleanPageUrl } from './lib/analytics';
 import { PrivacyPage } from './pages/PrivacyPage';
-import { Avatar, CourtIcon, CrewIcon, MyStatusBar, YouIcon } from './components';
+import { Avatar, CourtIcon, CrewIcon, FriendsIcon, MyStatusBar, YouIcon } from './components';
 import { missingConfig } from './lib/supabase';
 import { CourtPage } from './pages/CourtPage';
 import { CourtsPage } from './pages/CourtsPage';
@@ -17,6 +17,8 @@ import { LoginPage } from './pages/LoginPage';
 import { AccountRecoveryPage } from './pages/AccountRecoveryPage';
 import { PlayerPage } from './pages/PlayerPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { FriendsPage } from './pages/FriendsPage';
+import { AddFriendPage } from './pages/AddFriendPage';
 
 function Header() {
   const { userId, profile } = useAuth();
@@ -30,7 +32,7 @@ function Header() {
         <NavLink to="/" end>
           Courts
         </NavLink>
-        <NavLink to="/crews">Crews</NavLink>{userId&&<NavLink to="/updates">Updates</NavLink>}
+        <NavLink to="/crews">Crews</NavLink>{userId&&<NavLink to="/friends">Friends</NavLink>}{userId&&<NavLink to="/updates">Updates</NavLink>}
         {userId ? (
           <NavLink to="/me" className="nav-me" aria-label="Your profile">
             <Avatar name={profile?.display_name} url={profile?.avatar_url} size={32} seed={userId} />
@@ -56,6 +58,12 @@ function TabBar() {
         <CrewIcon />
         <span>Crews</span>
       </NavLink>
+      {userId && (
+        <NavLink to="/friends">
+          <FriendsIcon />
+          <span>Friends</span>
+        </NavLink>
+      )}
       <NavLink to={userId ? '/me' : '/login'}>
         <YouIcon />
         <span>{userId ? 'You' : 'Sign in'}</span>
@@ -92,6 +100,8 @@ export function App() {
           <Route path="/reset-password" element={<ResetPasswordPage/>}/><Route path="/login" element={<LoginPage />} />
           <Route path="/forgot-email" element={<AccountRecoveryPage />} />
           <Route path="/me" element={<ProfilePage />} />
+          <Route path="/friends" element={<FriendsPage />} />
+          <Route path="/add/:username" element={<AddFriendPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route
             path="*"
