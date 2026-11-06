@@ -26,10 +26,10 @@ function check(error: { message: string } | null) {
   if (error) throw new Error(error.message);
 }
 
-/** "@Ray_Allen " -> "ray_allen". Returns null if it can't be a username. */
+/** "@Ray_Allen " -> "Ray_Allen". Returns null if it can't be a username. Capitals are kept. */
 export function cleanUsername(input: string): string | null {
-  const u = input.trim().replace(/^@/, '').toLowerCase();
-  return /^[a-z0-9_]{3,20}$/.test(u) ? u : null;
+  const u = input.trim().replace(/^@/, '');
+  return /^[A-Za-z0-9_]{3,20}$/.test(u) ? u : null;
 }
 
 /** The note shown under the username box when it's not allowed. */
@@ -80,13 +80,13 @@ export async function searchPlayers(query: string): Promise<PlayerHit[]> {
   return (data ?? []) as PlayerHit[];
 }
 
-/** Finds a player by exact username (for friend links). */
+/** Finds a player by username, ignoring capitals (for friend links). */
 export async function findByUsername(username: string): Promise<PlayerHit | null> {
   const u = cleanUsername(username);
   if (!u) return null;
-  const { data, error } = await db.from('profiles').select('id, display_name, username, avatar_url').eq('username', u).maybeSingle();
+  const { data, error } = await db.rpc('find_player', { p_username: u });
   check(error);
-  return data as PlayerHit | null;
+  return ((data ?? []) as PlayerHit[])[0] ?? null;
 }
 
 /** Split the list into the three groups the Friends page shows. */

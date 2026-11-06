@@ -21,7 +21,7 @@ export function AddFriendPage() {
       <section className="page narrow">
         <div className="panel join-card">
           <p className="muted">You got a friend link for</p>
-          <h1 className="page-title">@{username}</h1>
+          <h1 className="page-title">{username}</h1>
           <p>Sign in or make an account to add them on Runback.</p>
           <div className="form-actions">
             <Link className="btn btn-primary" to={`/login?mode=signup&next=${encodeURIComponent(next)}`}>
@@ -42,7 +42,7 @@ export function AddFriendPage() {
   if (!p) {
     return (
       <section className="page narrow">
-        <h1 className="page-title">No player with that username</h1>
+        <h1 className="page-title">No player with that name</h1>
         <p className="muted">They may have changed it. Ask them for a new link, or search on the Friends page.</p>
         <p>
           <Link to="/friends">Go to Friends</Link>
@@ -59,7 +59,6 @@ export function AddFriendPage() {
       <div className="panel join-card">
         <Avatar name={p.display_name} url={p.avatar_url} size={88} seed={p.id} />
         <h1 className="page-title">{p.display_name}</h1>
-        <p className="muted">@{p.username}</p>
         {isMe ? (
           <p>This is your own friend link. Send it to people so they can add you.</p>
         ) : state === 'friends' ? (

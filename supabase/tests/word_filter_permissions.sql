@@ -5,11 +5,11 @@ alter table wf enable row level security;
 create policy wf_read on wf for select to authenticated, anon using (true);
 grant select on wf to authenticated, anon;
 
--- A bad name at signup becomes "Player".
+-- A bad name at signup becomes "Player" (plus numbers if taken).
 insert into auth.users(id,aud,role,email,raw_user_meta_data,created_at,updated_at)
 select a,'authenticated','authenticated',a::text||'@example.invalid',jsonb_build_object('display_name','f4ggot'),now(),now() from wf;
 do $$ begin
-  if (select display_name from public.profiles where id = (select a from wf)) <> 'Player' then
+  if (select display_name from public.profiles where id = (select a from wf)) !~ '^Player[0-9]*$' then
     raise exception 'Bad name at signup was kept';
   end if;
 end $$;
@@ -27,14 +27,17 @@ do $$ begin
 
   -- Name and bio changes are checked; normal ones save.
   begin
-    update public.profiles set display_name = 'retard' where id = auth.uid();
+    update public.profiles set username = 'retard' where id = auth.uid();
     raise exception 'Banned name was saved';
   exception when raise_exception then if sqlerrm not like 'That name%' then raise; end if; end;
   begin
     update public.profiles set bio = 'p0rn' where id = auth.uid();
     raise exception 'Banned bio was saved';
   exception when raise_exception then if sqlerrm not like 'Your bio%' then raise; end if; end;
-  update public.profiles set display_name = 'Ray', bio = 'Hoops at Himmel' where id = auth.uid();
+  update public.profiles set username = 'RayQaTest', bio = 'Hoops at Himmel' where id = auth.uid();
+  if (select display_name from public.profiles where id = auth.uid()) <> 'RayQaTest' then
+    raise exception 'Name did not follow the username';
+  end if;
 
   -- Players can't read or change the word list.
   begin

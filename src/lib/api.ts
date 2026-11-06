@@ -173,8 +173,8 @@ export async function updateProfile(userId: string, changes: ProfileChanges): Pr
   if (error) {
     if (/bio_check/i.test(error.message)) throw new Error('Keep your bio under 160 characters.');
     if (/display_name_check/i.test(error.message)) throw new Error('Your name needs 1 to 40 characters.');
-    if (/profiles_username_key|duplicate key/i.test(error.message)) throw new Error('That username is taken. Try another one.');
-    if (/profiles_username_format/i.test(error.message)) throw new Error('Usernames are 3 to 20 letters, numbers, or _.');
+    if (/profiles_username_lower_key|duplicate key/i.test(error.message)) throw new Error('That name is taken. Try another one.');
+    if (/profiles_username_format/i.test(error.message)) throw new Error('Names are 3 to 20 letters, numbers, or _ (no spaces).');
     fail(error, "Couldn't save your profile.");
   }
 }
