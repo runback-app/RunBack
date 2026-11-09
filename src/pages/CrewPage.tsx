@@ -79,6 +79,21 @@ export function CrewPage() {
         {[c.schedule, c.courts?.name].filter(Boolean).join(' at ') || 'No regular time set'}
       </p>
 
+      <section className="subsection">
+        <h2>Members ({members.length})</h2>
+        <ul className="players card-list">
+          {members.map((m) => (
+            <PlayerRow
+              key={m.user_id}
+              userId={m.user_id}
+              profile={m.profiles}
+              you={m.user_id === userId}
+              detail={m.role === 'owner' ? <span className="muted">Started the crew</span> : undefined}
+            />
+          ))}
+        </ul>
+      </section>
+
       <InvitePanel crewName={c.name} code={c.invite_code} fresh={params.get('new') === '1'} />
 
       <CrewRuns key={c.id} crewId={c.id} leader={isOwner}/>{isOwner&&<CrewSettings crew={c} reload={crew.reload}/>}<Chat key={`${userId}:${c.id}`} crewId={c.id} leader={isOwner}/><section className="subsection">
@@ -107,21 +122,6 @@ export function CrewPage() {
             })}
           </ul>
         )}
-      </section>
-
-      <section className="subsection">
-        <h2>{members.length === 1 ? '1 player' : `${members.length} players`}</h2>
-        <ul className="players card-list">
-          {members.map((m) => (
-            <PlayerRow
-              key={m.user_id}
-              userId={m.user_id}
-              profile={m.profiles}
-              you={m.user_id === userId}
-              detail={m.role === 'owner' ? <span className="muted">Started the crew</span> : undefined}
-            />
-          ))}
-        </ul>
       </section>
 
       <section className="subsection danger-zone">
