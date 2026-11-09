@@ -6,13 +6,13 @@ import { useLoad } from './hooks';
 import { ErrorNote, Loading } from './components';
 import { fetchCrew } from './lib/api';
 import { Chat } from './Chat';
-import { createRun, getRun, getRuns, saveRSVP, updateRun, stopSeries, runTime, tucsonISO, localRunTime, type Run } from './lib/social';
+import { createRun, getRun, getUpcomingRuns, saveRSVP, updateRun, stopSeries, runTime, tucsonISO, localRunTime, type Run } from './lib/social';
 const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 export function CrewRuns({crewId,leader}:{crewId:string;leader:boolean}){
- const {userId}=useAuth();const list=useLoad(()=>getRuns(crewId),[crewId,userId],15000);const [creating,setCreating]=useState(false);const [showAll,setShowAll]=useState(false);
+ const {userId}=useAuth();const list=useLoad(()=>getUpcomingRuns(crewId),[crewId,userId],15000);const [creating,setCreating]=useState(false);const [showAll,setShowAll]=useState(false);
  return <section className="subsection"><div className="title-row"><h2>Upcoming runs</h2>{leader&&<button className="btn btn-primary" onClick={()=>setCreating(!creating)}>{creating?'Close':'Plan a run'}</button>}</div>{creating&&<RunForm crewId={crewId} done={async()=>{setCreating(false);await list.reload();}}/>}{list.error&&<ErrorNote>{list.error}</ErrorNote>}
  {!list.loading&&!list.data?.length&&<p className="muted">No runs planned yet. The crew leader can set a time.</p>}
- <div className="run-list">{list.data?.slice(0,showAll?100:7).map(r=><div className="panel" key={r.id}><Link to={`/run/${r.id}`}><h3>{r.title}</h3></Link><p>{runTime(r.starts_at)} · Tucson time</p>{r.series_id&&<span className="fine">Recurring run · </span>}{r.cancelled?<p className="muted">Cancelled</p>:<RSVPControl run={r} refresh={list.reload}/>}</div>)}</div>{(list.data?.length??0)>7&&<button className="btn btn-quiet" onClick={()=>setShowAll(!showAll)}>{showAll?'Show fewer dates':'Show more dates'}</button>}</section>;
+ <div className="run-list">{list.data?.slice(0,showAll?100:7).map(r=><div className="panel" key={r.id}><Link to={`/run/${r.id}`}><h3>{r.title}</h3></Link><p>{runTime(r.starts_at)} · Tucson time</p>{r.series_id&&<span className="fine">Recurring run · </span>}<RSVPControl run={r} refresh={list.reload}/></div>)}</div>{(list.data?.length??0)>7&&<button className="btn btn-quiet" onClick={()=>setShowAll(!showAll)}>{showAll?'Show fewer dates':'Show more dates'}</button>}</section>;
 }
 function RunForm({crewId,done}:{crewId:string;done:()=>Promise<void>}){
  const {courts}=usePlay();const [title,setTitle]=useState('Daily hoops'),[court,setCourt]=useState(courts[0]?.id??''),[when,setWhen]=useState(''),[repeat,setRepeat]=useState('once'),[weekdays,setDays]=useState([1,2,3,4,5]),[minutes,setMinutes]=useState(120),[error,setError]=useState<string|null>(null),[busy,setBusy]=useState(false);

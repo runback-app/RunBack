@@ -6,7 +6,18 @@ export type Message={id:string;user_id:string;body:string;created_at:string;prof
 export type Notice={id:string;run_id:string;title:string;body:string;read_at:string|null};
 function check(e:{message:string}|null){if(e)throw new Error(e.message);}
 const runSelect='*,run_rsvps(user_id,status,reminder,profiles(display_name,avatar_url,position,skill,height_in))';
-export async function getRuns(crew:string){const {data,error}=await db.from('runs').select(runSelect).eq('crew_id',crew).gt('starts_at',new Date(Date.now()-4*3600000).toISOString()).order('starts_at').limit(100);check(error);return data as unknown as Run[];}
+export async function getUpcomingRuns(crew: string) {
+  const { data, error } = await db
+    .from('runs')
+    .select(runSelect)
+    .eq('crew_id', crew)
+    .eq('cancelled', false)
+    .gt('starts_at', new Date(Date.now() - 4 * 3600000).toISOString())
+    .order('starts_at')
+    .limit(100);
+  check(error);
+  return data as unknown as Run[];
+}
 export async function getRun(id:string){const {data,error}=await db.from('runs').select(runSelect).eq('id',id).maybeSingle();check(error);return data as unknown as Run|null;}
 export async function saveRSVP(run_id:string,status:RSVP['status'],reminder:boolean){const {error}=await db.rpc('set_run_rsvp',{p_run_id:run_id,p_status:status,p_reminder:reminder});check(error);}
 export async function getMessages(crew:string,run?:string){let q=db.from('crew_messages').select('id,user_id,body,created_at,profiles(display_name,avatar_url,position,skill,height_in)').eq('crew_id',crew);q=run?q.eq('run_id',run):q.is('run_id',null);const {data,error}=await q.order('created_at',{ascending:false}).limit(100);check(error);return (data as unknown as Message[]).reverse();}
