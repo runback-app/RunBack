@@ -50,6 +50,75 @@ type ReportDetails = {
 const SITE = 'https://runback.net';
 const TABLE_EDITOR = 'https://supabase.com/dashboard/project/ioxmdthiblgudygedjmc/editor';
 
+type CrewReportDetails = {
+  message_id: string;
+  crew_id: string;
+  crew_name: string;
+  run_id: string | null;
+  run_title: string | null;
+  body: string;
+  posted_at: string;
+  author_id: string;
+  author_name: string;
+};
+
+async function sendCrewReportEmail(reportId: string): Promise<Response> {
+  const { data, error } = await admin.rpc('crew_message_report_details', { p_report_id: reportId });
+  if (error) {
+    console.error('crew_message_report_details failed', error.code);
+    return reply({ error: 'Lookup failed' }, 500);
+  }
+  const report = ((data ?? []) as CrewReportDetails[])[0];
+  if (!report) return reply({ sent: 0 });
+
+  const apiKey = Deno.env.get('RESEND_API_KEY');
+  if (!apiKey) return reply({ error: 'Report emails are not set up' }, 500);
+  const to = (Deno.env.get('REPORT_ALERT_TO') ?? 'support@runback.net').split(',').map(address => address.trim()).filter(Boolean);
+  const thread = report.run_id ? 'run' : 'crew';
+  const threadUrl = report.run_id ? `${SITE}/run/${report.run_id}` : `${SITE}/crew/${report.crew_id}`;
+  const text = [
+    `Someone reported a ${thread} chat message. It is hidden from the player who reported it.`,
+    `Crew: ${report.crew_name}`,
+    ...(report.run_title ? [`Run: ${report.run_title}`] : []),
+    `Thread: ${threadUrl}`,
+    `Posted by: ${report.author_name} (${SITE}/player/${report.author_id})`,
+    `Posted at: ${new Date(report.posted_at).toLocaleString('en-US', { timeZone: 'America/Phoenix' })} (Tucson time)`,
+    '',
+    'Reported message:',
+    report.body,
+    '',
+    `Review in Supabase → crew_messages → ${report.message_id}`,
+    TABLE_EDITOR,
+  ].join('\n');
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'Idempotency-Key': `runback-crew-report/${reportId}`,
+    },
+    body: JSON.stringify({
+      from: 'Runback alerts <alerts@runback.net>',
+      to,
+      subject: `Runback: ${thread} chat message reported`,
+      text,
+    }),
+  });
+  if (!response.ok) {
+    console.error('crew report email failed', response.status);
+    return reply({ error: 'Email failed' }, 502);
+  }
+  const { error: updateError } = await admin
+    .from('crew_message_reports')
+    .update({ emailed_at: new Date().toISOString() })
+    .eq('id', reportId);
+  if (updateError) {
+    console.error('crew report email receipt update failed', updateError.code);
+    return reply({ error: 'Email receipt update failed' }, 500);
+  }
+  return reply({ sent: 1 });
+}
+
 /** Emails us about a reported court chat message, through Resend. Plain text only. */
 async function sendReportEmail(alertId: string): Promise<Response> {
   const { data, error } = await admin.rpc('report_alert_details', { p_alert_id: alertId });
@@ -176,6 +245,7 @@ Deno.serve(async (req) => {
   let notificationId: unknown;
   let teamNotificationId: unknown;
   let reportAlertId: unknown;
+  let crewMessageReportId: unknown;
   let feedbackId: unknown;
   try {
     const payload = await req.json();
@@ -183,12 +253,14 @@ Deno.serve(async (req) => {
     notificationId = payload?.notification_id;
     teamNotificationId = payload?.team_notification_id;
     reportAlertId = payload?.report_alert_id;
+    crewMessageReportId = payload?.crew_message_report_id;
     feedbackId = payload?.feedback_id;
   } catch {
     return reply({ error: 'Send JSON with checkin_id' }, 400);
   }
   const isId = (v: unknown): v is string => typeof v === 'string' && /^[0-9a-f-]{36}$/i.test(v);
   if (isId(reportAlertId)) return sendReportEmail(reportAlertId);
+  if (isId(crewMessageReportId)) return sendCrewReportEmail(crewMessageReportId);
   if (isId(feedbackId)) return sendFeedbackEmail(feedbackId);
   if (!isId(checkinId) && !isId(notificationId) && !isId(teamNotificationId)) {
     return reply({ error: 'Send JSON with checkin_id' }, 400);
