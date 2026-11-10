@@ -6,6 +6,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { useAuth } from './auth';
 import { cleanPageUrl } from './lib/analytics';
 import { PrivacyPage } from './pages/PrivacyPage';
+import { TermsPage } from './pages/TermsPage';
 import { Avatar, CourtIcon, CrewIcon, FriendsIcon, MyStatusBar, YouIcon } from './components';
 import { missingConfig } from './lib/supabase';
 import { CourtPage } from './pages/CourtPage';
@@ -103,6 +104,7 @@ export function App() {
           <Route path="/friends" element={<FriendsPage />} />
           <Route path="/add/:username" element={<AddFriendPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
           <Route
             path="*"
             element={
@@ -120,6 +122,7 @@ export function App() {
         <span>Built in Tucson for people who show up.</span>
         <span className="footer-links">
           <Link to="/privacy">Privacy</Link>
+          <Link to="/terms">Terms</Link>
           <Link to="/privacy#contact">Send feedback</Link>
         </span>
       </footer>
