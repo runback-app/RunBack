@@ -1,7 +1,8 @@
 // Sends phone/computer alerts after someone checks in, for crew runs, and for Got next teams.
 // The database calls this with { checkin_id }, { notification_id } (crew runs),
 // or { team_notification_id } ("You're up next" / "You got picked up").
-// It also emails us about reported court chat messages: { report_alert_id }.
+// It also emails us about reported court chat messages: { report_alert_id },
+// and about messages sent through the feedback form: { feedback_id }.
 // Who gets alerted is decided in SQL (public.alert_targets), which also makes sure
 // each check-in is only handled once, so calling this twice does nothing extra.
 import webpush from 'npm:web-push@3.6.7';
@@ -105,6 +106,69 @@ async function sendReportEmail(alertId: string): Promise<Response> {
   return reply({ sent: 1 });
 }
 
+type FeedbackDetails = {
+  feedback_id: string;
+  message: string;
+  page: string | null;
+  sent_at: string;
+  player_id: string | null;
+  player_name: string | null;
+  reply_email: string | null;
+};
+
+/** Emails us a message from the feedback form. Reply-To is the player, so Reply answers them. */
+async function sendFeedbackEmail(feedbackId: string): Promise<Response> {
+  const { data, error } = await admin.rpc('feedback_email_details', { p_feedback_id: feedbackId });
+  if (error) {
+    console.error('feedback_email_details failed', error.message);
+    return reply({ error: 'Lookup failed' }, 500);
+  }
+  const f = ((data ?? []) as FeedbackDetails[])[0];
+  if (!f) return reply({ sent: 0 }); // already emailed or too old
+
+  const apiKey = Deno.env.get('RESEND_API_KEY');
+  if (!apiKey) {
+    console.error('RESEND_API_KEY is not set; feedback email skipped');
+    return reply({ error: 'Feedback emails are not set up' }, 500);
+  }
+  const to = (Deno.env.get('REPORT_ALERT_TO') ?? 'support@runback.net')
+    .split(',')
+    .map((e) => e.trim())
+    .filter(Boolean);
+
+  const name = f.player_name ?? 'A player';
+  const replyOk = !!f.reply_email && /^[^\s@<>]+@[^\s@<>]+$/.test(f.reply_email);
+  const text = [
+    `${name} sent feedback from Runback.`,
+    '',
+    'Message:',
+    f.message,
+    '',
+    `From: ${name}${f.player_id ? ` (${SITE}/player/${f.player_id})` : ''}`,
+    `Page: ${f.page ?? 'unknown'}`,
+    `Sent: ${new Date(f.sent_at).toLocaleString('en-US', { timeZone: 'America/Phoenix' })} (Tucson time)`,
+    '',
+    replyOk ? 'Hit Reply to answer them (it goes to their sign-in email).' : 'No reply address on file.',
+  ].join('\n');
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: 'Runback feedback <alerts@runback.net>',
+      to,
+      subject: `Runback feedback from ${name}`,
+      text,
+      ...(replyOk ? { reply_to: f.reply_email } : {}),
+    }),
+  });
+  if (!res.ok) {
+    console.error('feedback email failed', res.status, await res.text());
+    return reply({ error: 'Email failed' }, 502);
+  }
+  return reply({ sent: 1 });
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return reply({ error: 'POST only' }, 405);
 
@@ -112,17 +176,20 @@ Deno.serve(async (req) => {
   let notificationId: unknown;
   let teamNotificationId: unknown;
   let reportAlertId: unknown;
+  let feedbackId: unknown;
   try {
     const payload = await req.json();
     checkinId = payload?.checkin_id;
     notificationId = payload?.notification_id;
     teamNotificationId = payload?.team_notification_id;
     reportAlertId = payload?.report_alert_id;
+    feedbackId = payload?.feedback_id;
   } catch {
     return reply({ error: 'Send JSON with checkin_id' }, 400);
   }
   const isId = (v: unknown): v is string => typeof v === 'string' && /^[0-9a-f-]{36}$/i.test(v);
   if (isId(reportAlertId)) return sendReportEmail(reportAlertId);
+  if (isId(feedbackId)) return sendFeedbackEmail(feedbackId);
   if (!isId(checkinId) && !isId(notificationId) && !isId(teamNotificationId)) {
     return reply({ error: 'Send JSON with checkin_id' }, 400);
   }
