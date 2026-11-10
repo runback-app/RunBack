@@ -23,6 +23,10 @@ export async function saveRSVP(run_id:string,status:RSVP['status'],reminder:bool
 export async function getMessages(crew:string,run?:string){let q=db.from('crew_messages').select('id,user_id,body,created_at,profiles(display_name,avatar_url,position,skill,height_in)').eq('crew_id',crew);q=run?q.eq('run_id',run):q.is('run_id',null);const {data,error}=await q.order('created_at',{ascending:false}).limit(100);check(error);return (data as unknown as Message[]).reverse();}
 export async function sendMessage(crew_id:string,user_id:string,body:string,run_id?:string){body=body.trim();if(!body||body.length>1000)throw new Error('Write 1–1,000 characters.');const {error}=await db.from('crew_messages').insert({crew_id,run_id:run_id??null,user_id,body});check(error);}
 export async function removeMessage(id:string){const {error}=await db.from('crew_messages').delete().eq('id',id);check(error);}
+export async function reportCrewMessage(messageId: string) {
+  const { error } = await db.rpc('report_crew_message', { p_message_id: messageId });
+  check(error);
+}
 export async function getNotices(){const {data,error}=await db.from('run_notifications').select('id,run_id,title,body,read_at').order('created_at',{ascending:false}).limit(30);check(error);return data as Notice[];}
 export async function readNotice(id:string){const {error}=await db.from('run_notifications').update({read_at:new Date().toISOString()}).eq('id',id);check(error);}
 export function runTime(v:string){return new Intl.DateTimeFormat('en-US',{timeZone:'America/Phoenix',weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}).format(new Date(v));}
