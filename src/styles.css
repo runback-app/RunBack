@@ -147,6 +147,7 @@ main {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-height: 72px;
   padding: 12px var(--gutter);
   max-width: 1000px;
   width: 100%;
@@ -156,33 +157,23 @@ main {
 .wordmark {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-family: var(--display);
   font-weight: 800;
-  font-size: 28px;
-  color: var(--ball);
+  font-size: 32px;
+  line-height: 1;
+  color: var(--ink);
   text-decoration: none;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.025em;
   text-transform: uppercase;
 }
 
-.ball {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--ball);
-  position: relative;
+.brand-mark {
+  flex: none;
 }
 
-.ball::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background:
-    linear-gradient(var(--bg), var(--bg)) center / 100% 1.5px no-repeat,
-    linear-gradient(var(--bg), var(--bg)) center / 1.5px 100% no-repeat;
-  opacity: 0.55;
+.wordmark-accent {
+  color: var(--court);
 }
 
 .nav {
@@ -262,6 +253,11 @@ main {
   .tabbar a.active {
     color: var(--court);
   }
+  .tabbar a.active svg {
+    border-radius: 7px;
+    box-shadow: 0 0 0 4px var(--court-soft);
+    background: var(--court-soft);
+  }
 }
 
 
@@ -330,10 +326,6 @@ main {
 }
 
 /* ---------- Home ---------- */
-.home-head {
-  margin: 8px 0 16px;
-}
-
 .page-title {
   font-family: var(--display);
   font-weight: 800;
@@ -1494,43 +1486,126 @@ main {
 /* Crew coordination */
 .run-list{display:grid;gap:1rem;margin-top:1rem}.run-list h3{margin:0}.chat-list{list-style:none;padding:0;max-height:28rem;overflow:auto;display:grid;gap:.75rem}.chat-list li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1rem}.chat-heading{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}.chat-heading time{font-size:.75rem;color:var(--muted)}.chat-body{white-space:pre-wrap;overflow-wrap:anywhere;margin:.6rem 0}.crew-picture{width:96px;height:96px;object-fit:cover;border-radius:20px}.day-choices{display:flex;gap:1rem;flex-wrap:wrap}.day-choices label{display:flex;align-items:center;gap:.25rem}.notice{margin:1rem 0}.notice.unread{border-left:4px solid var(--ball)}.notice a{text-decoration:none;color:inherit}details>summary{cursor:pointer;font-weight:700;padding:1rem 0}.subsection .switch-row{margin-top:1rem}.subsection .panel{margin-top:1rem}.field input[type=file]{max-width:100%}.topbar .nav{flex-wrap:wrap}@media(max-width:500px){.topbar .nav{gap:.6rem;font-size:.85rem}.form-actions .btn{flex-grow:1}}
 
-/* ---------- Home: clean list (Nov 2026 redesign, option A) ---------- */
+/* ---------- Courts home ---------- */
 .home .home-head {
-  margin: 8px 0 14px;
+  --court-art: #ffb78040;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: 4px 0 24px;
+  padding: clamp(22px, 5vw, 44px);
+  border: 1px solid #6c4b35;
+  border-radius: 22px;
+  background: linear-gradient(115deg, #22231b 12%, #34281d 64%, #53351e);
+}
+
+.home-head::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: 5%;
+  right: -10%;
+  width: clamp(250px, 52%, 500px);
+  aspect-ratio: 1.75;
+  border: 2px solid var(--court-art);
+  border-radius: 12px;
+  background:
+    linear-gradient(90deg, transparent calc(50% - 1px), var(--court-art) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)),
+    radial-gradient(circle at center, transparent 0 19%, var(--court-art) 19.2% 20%, transparent 20.2%);
+  transform: rotate(-12deg);
+  mask-image: linear-gradient(90deg, transparent, #000 52%);
+  pointer-events: none;
+}
+
+.home-eyebrow {
+  margin: 0 0 12px;
+  color: #ffc394;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.home-intro .page-title {
+  max-width: 11ch;
+  margin-bottom: 12px;
+  color: #fff5e9;
+  font-size: clamp(48px, 8.2vw, 86px);
+  font-weight: 900;
 }
 
 .home-sub {
-  margin: 4px 0 0;
-  font-size: 15px;
-  color: var(--muted);
+  margin: 0;
+  color: #e6d9cb;
+  font-size: clamp(15px, 2vw, 18px);
 }
 
-.seg {
+.home-activity {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 5px 10px;
+  border: 1px solid #775741;
+  border-radius: 999px;
+  background: #242018;
+  color: #e6d9cb;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.home-activity::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.home-activity.has-players {
+  color: #ffc394;
+}
+
+.court-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.court-toolbar h2 {
+  font-family: var(--display);
+  font-size: clamp(19px, 5.5vw, 30px);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.court-view {
   display: flex;
   gap: 4px;
-  padding: 4px;
-  margin-bottom: 16px;
-  background: var(--surface);
+  padding: 3px;
+  border: 1px solid var(--line);
   border-radius: 12px;
-  max-width: 420px;
+  background: var(--surface);
 }
 
-.seg-btn {
-  flex: 1;
-  min-height: 40px;
+.court-view button {
+  min-width: 53px;
+  min-height: 44px;
+  padding: 0 10px;
   border: 0;
-  border-radius: 9px;
+  border-radius: 8px;
   background: transparent;
   color: var(--muted);
-  font: 700 15px var(--body);
+  font: 700 14px var(--body);
   cursor: pointer;
 }
 
-.seg-btn.on {
-  background: var(--surface);
-  color: var(--ink);
-  box-shadow: inset 0 0 0 1px var(--line);
-  background: var(--surface-2);
+.court-view button[aria-pressed='true'] {
+  background: var(--court);
+  color: var(--on-court);
 }
 
 .list-label {
@@ -1543,30 +1618,34 @@ main {
 }
 
 .court-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 10px;
   list-style: none;
   margin: 0;
   padding: 0;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-.court-list li + li {
-  border-top: 1px solid var(--line);
 }
 
 .court-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
-  min-height: 64px;
+  gap: clamp(6px, 2vw, 14px);
+  height: 100%;
+  min-height: 104px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
   color: inherit;
   text-decoration: none;
 }
 
+.court-row.busy {
+  border-color: #a76236;
+}
+
 .court-row:hover {
+  border-color: var(--muted);
   background: var(--surface-2);
 }
 
@@ -1579,8 +1658,13 @@ main {
 }
 
 .court-row-name {
-  font-size: 17px;
-  font-weight: 700;
+  margin-bottom: 2px;
+  font-family: var(--display);
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
 }
 
 .court-row-meta {
@@ -1597,32 +1681,7 @@ main {
   color: var(--closed-ink);
 }
 
-.count-pill {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: var(--ball-soft);
-  color: var(--closing-ink);
-  font-weight: 700;
-  font-size: 14px;
-  white-space: nowrap;
-}
-
-.count-pill .live-dot {
-  width: 8px;
-  height: 8px;
-}
-
-.count-empty {
-  flex: none;
-  font-size: 14px;
-  color: var(--muted);
-}
-
-.court-row .chev {
+.court-row-arrow {
   flex: none;
   color: var(--muted);
 }
@@ -1642,7 +1701,7 @@ main {
   margin: 0;
   font-size: 14px;
   line-height: 1.35;
-  color: var(--open-ink);
+  color: var(--ink);
 }
 
 /* Section headings in the display font, like a scoreboard. */
@@ -1655,45 +1714,6 @@ main {
   letter-spacing: 0.02em;
   font-size: 30px;
   line-height: 1;
-}
-
-/* ---------- Night court: courts list (Nov 2026) ---------- */
-.court-list {
-  background: none;
-  border: 0;
-  border-radius: 0;
-  overflow: visible;
-  display: grid;
-  gap: 10px;
-}
-
-.court-list li + li {
-  border-top: 0;
-}
-
-.court-row {
-  background: var(--surface);
-  border: 1.5px solid var(--surface);
-  border-radius: 14px;
-  align-items: center;
-}
-
-.court-row.busy {
-  border-color: var(--ball);
-}
-
-.court-row:hover {
-  background: var(--surface-2);
-}
-
-.court-row-name {
-  font-family: var(--display);
-  font-weight: 800;
-  font-size: 26px;
-  line-height: 1;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  margin-bottom: 4px;
 }
 
 .line-tag {
@@ -1726,27 +1746,34 @@ main {
   flex: none;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
+  gap: 3px;
+  min-width: 74px;
+  padding: 7px 6px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.court-row-count.live {
+  border-color: #775741;
+  background: var(--ball-soft);
+  color: #ffc394;
 }
 
 .court-row-num {
   font-family: var(--display);
   font-weight: 800;
-  font-size: 56px;
+  font-size: 40px;
   line-height: 0.9;
-  color: var(--line);
-}
-
-.court-row-num.live {
-  color: var(--ball);
 }
 
 .court-row-here {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.035em;
   text-transform: uppercase;
-  color: var(--muted);
 }
 
 /* ---------- Night court: court page ---------- */
