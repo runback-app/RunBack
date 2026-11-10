@@ -22,6 +22,7 @@ type PlayState = {
   courtsLoading: boolean;
   /** Player count per court id (public). */
   activity: Record<string, number>;
+  activityLoaded: boolean;
   /** Teams waiting and free agents per court (public). */
   lineCounts: Record<string, { teams: number; freeAgents: number }>;
   /** Everyone checked in right now, with names and photos (signed-in only). */
@@ -103,6 +104,7 @@ export function PlayProvider({ children }: { children: ReactNode }) {
       courtsError: courts.error,
       courtsLoading: courts.loading,
       activity: activity.data ?? {},
+      activityLoaded: activity.data !== undefined,
       lineCounts: lines.data ?? {},
       live: live.data ?? [],
       liveLoaded: live.data !== undefined && !live.loading,

@@ -25,9 +25,9 @@ function Header() {
   const { userId, profile } = useAuth();
   return (
     <header className="topbar">
-      <Link to="/" className="wordmark" aria-label="Runback home">
-        <span className="ball" aria-hidden="true" />
-        runback
+      <Link to="/" className="wordmark" aria-label="RunBack home">
+        <img className="brand-mark" src="/favicon.svg" width="36" height="36" alt="" />
+        <span>Run<span className="wordmark-accent">Back</span></span>
       </Link>
       <nav className="nav" aria-label="Main">
         <NavLink to="/" end>

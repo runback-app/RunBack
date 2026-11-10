@@ -16,7 +16,7 @@ type View = 'list' | 'map';
 /** Home: a clean list of courts with live player counts. The map sits behind a List/Map switch. */
 export function CourtsPage() {
   const { userId } = useAuth();
-  const { courts, courtsError, courtsLoading, activity, live, isFavorite } = usePlay();
+  const { courts, courtsError, courtsLoading, activity, activityLoaded, live, isFavorite } = usePlay();
   const now = useNow();
   const [view, setView] = useState<View>('list');
   const [params] = useSearchParams();
@@ -37,19 +37,28 @@ export function CourtsPage() {
       )}
 
       <header className="home-head">
-        <h1 className="page-title">Who's running</h1>
-        <p className="home-sub">
-          {total === 0 ? 'Tucson · Nobody checked in yet' : `Tucson · ${total} hoopers out · updated just now`}
-        </p>
+        <div className="home-intro">
+          <p className="home-eyebrow">Tucson pickup basketball</p>
+          <h1 className="page-title">Find your next run.</h1>
+          <p className="home-sub">See who’s at the court before you head out.</p>
+          {activityLoaded && (
+            <p className={total > 0 ? 'home-activity has-players' : 'home-activity'}>
+              {total === 0 ? 'Nobody checked in yet' : `${total} ${total === 1 ? 'player' : 'players'} checked in`}
+            </p>
+          )}
+        </div>
       </header>
 
-      <div className="seg" role="group" aria-label="Show courts as">
-        <button className={view === 'list' ? 'seg-btn on' : 'seg-btn'} aria-pressed={view === 'list'} onClick={() => setView('list')}>
-          List
-        </button>
-        <button className={view === 'map' ? 'seg-btn on' : 'seg-btn'} aria-pressed={view === 'map'} onClick={() => setView('map')}>
-          Map
-        </button>
+      <div className="court-toolbar">
+        <h2>Tucson courts</h2>
+        <div className="court-view" role="group" aria-label="Show courts as">
+          <button aria-pressed={view === 'list'} onClick={() => setView('list')}>
+            List
+          </button>
+          <button aria-pressed={view === 'map'} onClick={() => setView('map')}>
+            Map
+          </button>
+        </div>
       </div>
 
       {courtsLoading && courts.length === 0 && <Loading label="Loading courts" />}
@@ -65,9 +74,9 @@ export function CourtsPage() {
         <>
           {mine.length > 0 && (
             <>
-              <h2 className="list-label">Your courts</h2>
+              <h3 className="list-label">Your courts</h3>
               <CourtList courts={mine} now={now} />
-              {others.length > 0 && <h2 className="list-label">More courts</h2>}
+              {others.length > 0 && <h3 className="list-label">More courts</h3>}
             </>
           )}
           <CourtList courts={others} now={now} />
@@ -139,10 +148,13 @@ function CourtList({ courts, now }: { courts: Court[]; now: Date }) {
                   <span className="court-row-meta">{freeAgentLine(line.freeAgents)}</span>
                 )}
               </span>
-              <span className="court-row-count">
-                <span className={players > 0 ? 'court-row-num live' : 'court-row-num'}>{players}</span>
-                <span className="court-row-here">Here</span>
+              <span className={players > 0 ? 'court-row-count live' : 'court-row-count'}>
+                <span className="court-row-num">{players}</span>
+                <span className="court-row-here">{players === 1 ? 'Player here' : 'Players here'}</span>
               </span>
+              <svg className="court-row-arrow" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </Link>
           </li>
         );
