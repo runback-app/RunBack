@@ -1,4 +1,5 @@
 import { TERMS_VERSION } from './pages/TermsPage';
+import { siteOrigin } from './lib/native';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
@@ -86,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password,
           options: {
             data: { display_name: name.trim(), terms_version: TERMS_VERSION, terms_accepted_at: new Date().toISOString() },
-            emailRedirectTo: signupRedirect(window.location.origin, next),
+            emailRedirectTo: signupRedirect(siteOrigin(), next),
           },
         });
         if (error) throw new Error(friendlyAuthError(error.message));

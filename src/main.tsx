@@ -5,9 +5,11 @@ import { App } from './App';
 import { AuthProvider } from './auth';
 import { PlayProvider } from './data';
 import { registerServiceWorker } from './alerts';
+import { isNativeApp, startNativeApp } from './lib/native';
 import './styles.css';
 
-registerServiceWorker();
+if (!isNativeApp) registerServiceWorker();
+void startNativeApp();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

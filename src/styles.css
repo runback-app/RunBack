@@ -2190,3 +2190,37 @@ main {
   flex: none;
   accent-color: #e8711c;
 }
+
+/* No internet */
+.offline {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 21, 18, 0.97);
+}
+.offline-card {
+  max-width: 360px;
+  text-align: center;
+}
+.offline-card p {
+  margin: 12px 0 20px;
+}
+
+/* Inside the phone app: feel like an app, not a web page */
+.native-app body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
+}
+.native-app input,
+.native-app textarea,
+.native-app [contenteditable],
+.native-app .prose {
+  -webkit-user-select: text;
+  user-select: text;
+}
