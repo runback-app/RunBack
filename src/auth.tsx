@@ -1,3 +1,4 @@
+import { TERMS_VERSION } from './pages/TermsPage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
@@ -84,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: email.trim(),
           password,
           options: {
-            data: { display_name: name.trim() },
+            data: { display_name: name.trim(), terms_version: TERMS_VERSION, terms_accepted_at: new Date().toISOString() },
             emailRedirectTo: signupRedirect(window.location.origin, next),
           },
         });

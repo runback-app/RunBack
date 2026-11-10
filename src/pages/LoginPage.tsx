@@ -28,6 +28,7 @@ export function LoginPage() {
   const [resetSent,setResetSent]=useState(false);
   const [confirmPassword,setConfirmPassword]=useState('');
   const [resetWait, setResetWait] = useState(0);
+  const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
     if (resetWait <= 0) return;
@@ -57,6 +58,10 @@ export function LoginPage() {
       return;
     }
     if(mode==='signup'&&password!==confirmPassword){setError('Passwords do not match.');return;}
+    if (mode === 'signup' && !agreed) {
+      setError('Check the box to agree to the terms of use.');
+      return;
+    }
     setBusy(true);
     try {
       if (mode === 'signup') {
@@ -122,12 +127,21 @@ export function LoginPage() {
         {error && <ErrorNote>{error}</ErrorNote>}
         {mode==='signin'&&<div className="recovery-links"><button className="link-button" type="button" disabled={busy || resetWait > 0} onClick={async()=>{if(!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())){setError('Enter a valid email first, then tap Forgot password.');return;}setBusy(true);setError(null);setResetSent(false);try{const {error}=await supabase.auth.resetPasswordForEmail(email.trim(),{redirectTo:window.location.origin+'/reset-password'});if(error)throw error;setResetSent(true);setResetWait(60);}catch(e){setError(resetRequestError(e instanceof Error?e.message:''));}finally{setBusy(false);}}}>{resetWait > 0 ? `Request another link in ${resetWait}s` : 'Forgot password?'}</button><Link to="/forgot-email">Forgot email?</Link></div>}
         {resetSent&&<p role="status" className="ok">If an account exists for that email, check its inbox and spam folder for a reset link. Open the newest link. No email? <Link to="/forgot-email">Get recovery help</Link>.</p>}
+        {mode === 'signup' && (
+          <label className="agree">
+            <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} required />
+            <span>
+              I'm 13 or older and I agree to the <Link to="/terms" target="_blank">terms of use</Link>. No abuse,
+              hate, threats, or sexual content.
+            </span>
+          </label>
+        )}
         <button className="btn btn-primary btn-block" type="submit" disabled={busy}>
           {busy ? 'One sec…' : mode === 'signup' ? 'Create account' : 'Sign in'}
         </button>
         {mode === 'signup' && (
           <p className="fine">
-            You need to be 13 or older. See <Link to="/privacy">how we handle your info</Link>.
+            See <Link to="/privacy">how we handle your info</Link>.
           </p>
         )}
       </form>
