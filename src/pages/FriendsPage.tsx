@@ -15,7 +15,7 @@ import {
   type FriendRow,
   type PlayerHit,
 } from '../lib/friends';
-import { Avatar, ErrorNote, Loading } from '../components';
+import { Avatar, ErrorNote, Loading, SectionHero } from '../components';
 
 export function FriendsPage() {
   const { userId, ready, profile } = useAuth();
@@ -25,13 +25,9 @@ export function FriendsPage() {
 
   if (ready && !userId) {
     return (
-      <section className="page narrow">
-        <h1 className="page-title">Sign in to add friends</h1>
-        <p>
-          <Link className="btn btn-primary" to="/login?next=/friends">
-            Sign in
-          </Link>
-        </p>
+      <section className="page social-page">
+        <SectionHero label="Your basketball circle" title="Friends" description="Sign in to find players and add friends."
+          action={<Link className="btn btn-primary" to="/login?next=/friends">Sign in</Link>} />
       </section>
     );
   }
@@ -55,84 +51,90 @@ export function FriendsPage() {
   const known = new Map(rows.map((r) => [r.id, r.state]));
 
   return (
-    <div className="page narrow">
-      <h1 className="page-title">Friends</h1>
+    <div className="page social-page">
+      <SectionHero label="Your basketball circle" title="Friends"
+        description="Find the people you play with, manage requests, and share your link." />
       {(error || friends.error) && <ErrorNote>{error ?? friends.error}</ErrorNote>}
 
-      <FindPlayers known={known} busyId={busyId} onAdd={(id) => void run(id, () => sendFriendRequest(id))} />
+      <div className="social-layout">
+        <div className="social-stack">
+          <FindPlayers known={known} busyId={busyId} onAdd={(id) => void run(id, () => sendFriendRequest(id))} />
 
-      {incoming.length > 0 && (
-        <section className="panel">
-          <h2>Friend requests</h2>
-          <ul className="friend-list">
-            {incoming.map((f) => (
-              <FriendItem key={f.id} f={f}>
-                <button className="btn btn-primary" disabled={busyId === f.id} onClick={() => void run(f.id, () => acceptFriendRequest(f.id))}>
-                  Accept
-                </button>
-                <button className="btn btn-quiet" disabled={busyId === f.id} onClick={() => void run(f.id, () => removeFriend(f.id))}>
-                  Decline
-                </button>
-              </FriendItem>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <section className="panel">
-        <h2>Your friends{mine.length > 0 ? ` (${mine.length})` : ''}</h2>
-        {mine.length === 0 ? (
-          <p className="muted">No friends yet. Search for a name above or send your friend link.</p>
-        ) : (
-          <ul className="friend-list">
-            {mine.map((f) => (
-              <FriendItem key={f.id} f={f}>
-                <details className="friend-menu">
-                  <summary className="btn btn-quiet">More</summary>
-                  <div className="friend-menu-items">
-                    <button
-                      className="link-button"
-                      disabled={busyId === f.id}
-                      onClick={() => {
-                        if (window.confirm(`Remove ${f.display_name} from your friends?`)) void run(f.id, () => removeFriend(f.id));
-                      }}
-                    >
-                      Remove friend
+          {incoming.length > 0 && (
+            <section className="panel social-panel">
+              <h2>Friend requests</h2>
+              <ul className="friend-list">
+                {incoming.map((f) => (
+                  <FriendItem key={f.id} f={f}>
+                    <button className="btn btn-primary" disabled={busyId === f.id} onClick={() => void run(f.id, () => acceptFriendRequest(f.id))}>
+                      Accept
                     </button>
-                    <button
-                      className="link-button danger-link"
-                      disabled={busyId === f.id}
-                      onClick={() => {
-                        if (window.confirm(blockWarning(f.display_name) + ' This also removes them from your friends.'))
-                          void run(f.id, () => blockPlayer(f.id));
-                      }}
-                    >
-                      Block
+                    <button className="btn btn-quiet" disabled={busyId === f.id} onClick={() => void run(f.id, () => removeFriend(f.id))}>
+                      Decline
                     </button>
-                  </div>
-                </details>
-              </FriendItem>
-            ))}
-          </ul>
-        )}
-      </section>
+                  </FriendItem>
+                ))}
+              </ul>
+            </section>
+          )}
 
-      {outgoing.length > 0 && (
-        <section className="panel">
-          <h2>Waiting on them</h2>
-          <ul className="friend-list">
-            {outgoing.map((f) => (
-              <FriendItem key={f.id} f={f}>
-                <button className="btn btn-quiet" disabled={busyId === f.id} onClick={() => void run(f.id, () => removeFriend(f.id))}>
-                  Cancel
-                </button>
-              </FriendItem>
-            ))}
-          </ul>
-        </section>
-      )}
+          <section className="panel social-panel">
+            <h2>Your friends{mine.length > 0 ? ` (${mine.length})` : ''}</h2>
+            {mine.length === 0 ? (
+              <p className="muted">No friends yet. Search for a name above or send your friend link.</p>
+            ) : (
+              <ul className="friend-list">
+                {mine.map((f) => (
+                  <FriendItem key={f.id} f={f}>
+                    <details className="friend-menu">
+                      <summary className="btn btn-quiet">More</summary>
+                      <div className="friend-menu-items">
+                        <button
+                          className="link-button"
+                          disabled={busyId === f.id}
+                          onClick={() => {
+                            if (window.confirm(`Remove ${f.display_name} from your friends?`)) void run(f.id, () => removeFriend(f.id));
+                          }}
+                        >
+                          Remove friend
+                        </button>
+                        <button
+                          className="link-button danger-link"
+                          disabled={busyId === f.id}
+                          onClick={() => {
+                            if (window.confirm(blockWarning(f.display_name) + ' This also removes them from your friends.'))
+                              void run(f.id, () => blockPlayer(f.id));
+                          }}
+                        >
+                          Block
+                        </button>
+                      </div>
+                    </details>
+                  </FriendItem>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
 
-      <FriendLink username={profile.username} />
+        <div className="social-stack">
+          <FriendLink username={profile.username} />
+          {outgoing.length > 0 && (
+            <section className="panel social-panel">
+              <h2>Sent requests</h2>
+              <ul className="friend-list">
+                {outgoing.map((f) => (
+                  <FriendItem key={f.id} f={f}>
+                    <button className="btn btn-quiet" disabled={busyId === f.id} onClick={() => void run(f.id, () => removeFriend(f.id))}>
+                      Cancel
+                    </button>
+                  </FriendItem>
+                ))}
+              </ul>
+            </section>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -171,7 +173,7 @@ function FindPlayers({
   const searching = debounced.trim().replace(/^@/, '').length >= 2;
 
   return (
-    <section className="panel">
+    <section className="panel social-panel">
       <h2>Add a friend</h2>
       <label className="field">
         <span>Search by name</span>
@@ -227,7 +229,7 @@ function FriendLink({ username }: { username: string }) {
   }
 
   return (
-    <section className="panel invite">
+    <section className="panel social-panel invite">
       <h2>Your friend link</h2>
       <p className="muted">
         Send this to anyone. They tap it to add you. Your name is <strong>{username}</strong> (change it on{' '}

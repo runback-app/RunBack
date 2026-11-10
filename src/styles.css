@@ -1,27 +1,27 @@
 /* ---------- Tokens ---------- */
 :root {
-  /* "Night court" look (Nov 2026): dark court at night, ball-orange for anything live or tappable. */
-  --bg: #0f1512;          /* night court */
-  --surface: #18211c;
-  --surface-2: #1f2a24;
-  --ink: #f2f4f1;
-  --muted: #a7b2ab;
-  --line: #2a352f;
+  /* "Night court" look (Nov 2026): navy surfaces, blue status indicators, and ball-orange actions. */
+  --bg: #0d1523;          /* night court */
+  --surface: #16243a;
+  --surface-2: #1e304a;
+  --ink: #f0f5ff;
+  --muted: #afbed3;
+  --line: #31465f;
   --court: #ff8a3d;       /* main buttons and links */
   --court-deep: #ffa566;
   --court-soft: #2b2118;
-  --on-court: #0f1512;
+  --on-court: #0d1523;
   --ball: #ff8a3d;        /* ball orange: live players, counts */
   --ball-soft: #2b2118;
-  --open-bg: #1f4a35;
-  --open-ink: #bfe8d2;
+  --open-bg: #1c3f69;
+  --open-ink: #c1dcff;
   --closing-bg: #3a2516;
   --closing-ink: #ffb27a;
-  --closed-bg: #2a352f;
-  --closed-ink: #c3ccc6;
+  --closed-bg: #31465f;
+  --closed-ink: #cbd7e7;
   --danger: #ff7a6b;
   --link: #ff8a3d;
-  --green: #4fbf86;       /* a full team */
+  --positive: #84bbff;       /* a full team */
 
   --display: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
   --body: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -505,7 +505,7 @@ main {
   font-size: 12px;
   font-weight: 700;
   color: var(--ink);
-  background: rgba(15, 21, 18, 0.9);
+  background: rgba(13, 21, 35, 0.9);
   padding: 1px 6px;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
@@ -1342,34 +1342,78 @@ main {
 .crew-list {
   list-style: none;
   padding: 0;
-  margin: 18px 0 0;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-}
-
-.crew-list li + li {
-  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 10px;
+  margin: 0;
 }
 
 .crew-link {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 14px 18px;
+  align-items: center;
+  gap: clamp(7px, 2vw, 16px);
+  min-height: 96px;
+  padding: clamp(10px, 2vw, 16px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
   color: var(--ink);
   text-decoration: none;
 }
 
-.crew-link:hover .crew-name {
-  text-decoration: underline;
+.crew-link:hover {
+  border-color: var(--muted);
+  background: var(--surface-2);
+}
+
+.crew-card-copy {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  overflow-wrap: anywhere;
 }
 
 .crew-name {
-  font-family: var(--body);
+  font-family: var(--display);
   font-weight: 800;
-  font-size: 28px;
-  line-height: 1.05;
+  font-size: clamp(23px, 4vw, 32px);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.crew-card-count {
+  display: grid;
+  justify-items: center;
+  flex: none;
+  min-width: 58px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--open-ink);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.crew-card-count strong {
+  font: 800 28px/1 var(--display);
+}
+
+.social-symbol {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: var(--open-bg);
+  color: var(--open-ink);
+}
+
+.social-arrow {
+  color: var(--muted);
+  font-size: 25px;
 }
 
 .crew-meta {
@@ -1377,8 +1421,79 @@ main {
   font-size: 15px;
 }
 
-.join-by-link {
-  margin-top: 32px;
+.section-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.section-hero-copy {
+  min-width: 0;
+}
+
+.section-hero .page-title {
+  margin-bottom: 12px;
+  font-size: clamp(42px, 7.6vw, 72px);
+  overflow-wrap: anywhere;
+}
+
+.section-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.social-layout {
+  display: grid;
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+@media (min-width: 760px) {
+  .social-layout {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  }
+}
+
+.social-stack {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.social-page .social-panel {
+  margin: 0;
+}
+
+.social-panel .friend-list {
+  gap: 0;
+}
+
+.social-panel .friend-list li {
+  min-height: 58px;
+  padding: 8px 0;
+}
+
+.social-panel .friend-list li + li {
+  border-top: 1px solid var(--line);
+}
+
+.social-panel .friend-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 55%;
+}
+
+.social-panel .btn {
+  min-height: 44px;
+}
+
+.social-panel .inline-field input {
+  min-width: 0;
 }
 
 .invite.fresh {
@@ -1487,19 +1602,21 @@ main {
 .run-list{display:grid;gap:1rem;margin-top:1rem}.run-list h3{margin:0}.chat-list{list-style:none;padding:0;max-height:28rem;overflow:auto;display:grid;gap:.75rem}.chat-list li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:1rem}.chat-heading{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}.chat-heading time{font-size:.75rem;color:var(--muted)}.chat-body{white-space:pre-wrap;overflow-wrap:anywhere;margin:.6rem 0}.crew-picture{width:96px;height:96px;object-fit:cover;border-radius:20px}.day-choices{display:flex;gap:1rem;flex-wrap:wrap}.day-choices label{display:flex;align-items:center;gap:.25rem}.notice{margin:1rem 0}.notice.unread{border-left:4px solid var(--ball)}.notice a{text-decoration:none;color:inherit}details>summary{cursor:pointer;font-weight:700;padding:1rem 0}.subsection .switch-row{margin-top:1rem}.subsection .panel{margin-top:1rem}.field input[type=file]{max-width:100%}.topbar .nav{flex-wrap:wrap}@media(max-width:500px){.topbar .nav{gap:.6rem;font-size:.85rem}.form-actions .btn{flex-grow:1}}
 
 /* ---------- Courts home ---------- */
-.home .home-head {
-  --court-art: #ffb78040;
+.home .home-head,
+.section-hero {
+  --court-art: #99c5ff54;
   position: relative;
   isolation: isolate;
   overflow: hidden;
   margin: 4px 0 24px;
   padding: clamp(22px, 5vw, 44px);
-  border: 1px solid #6c4b35;
+  border: 1px solid #3c567a;
   border-radius: 22px;
-  background: linear-gradient(115deg, #22231b 12%, #34281d 64%, #53351e);
+  background: linear-gradient(115deg, #142238 12%, #1b3150 64%, #294d78);
 }
 
-.home-head::before {
+.home-head::before,
+.section-hero::before {
   content: '';
   position: absolute;
   z-index: -1;
@@ -1529,14 +1646,14 @@ main {
 .home-intro .page-title {
   max-width: 11ch;
   margin-bottom: 12px;
-  color: #fff5e9;
+  color: var(--ink);
   font-size: clamp(48px, 8.2vw, 86px);
   font-weight: 900;
 }
 
 .home-sub {
   margin: 0;
-  color: #e6d9cb;
+  color: var(--closed-ink);
   font-size: clamp(15px, 2vw, 18px);
 }
 
@@ -1546,10 +1663,10 @@ main {
   gap: 8px;
   margin: 16px 0 0;
   padding: 5px 10px;
-  border: 1px solid #775741;
+  border: 1px solid var(--line);
   border-radius: 999px;
-  background: #242018;
-  color: #e6d9cb;
+  background: var(--bg);
+  color: var(--closed-ink);
   font-size: 13px;
   font-weight: 700;
 }
@@ -1938,7 +2055,7 @@ main {
   font-weight: 800;
   font-size: 40px;
   line-height: 1;
-  color: #4a5750;
+  color: #788da8;
 }
 
 .line-card.first .line-place {
@@ -1982,7 +2099,7 @@ main {
 }
 
 .line-count.full {
-  color: var(--green);
+  color: var(--positive);
   text-transform: uppercase;
   font-size: 14px;
 }
@@ -2008,7 +2125,7 @@ main {
 }
 
 .line-card.full:not(.mine) .line-bars span.on {
-  background: var(--green);
+  background: var(--positive);
 }
 
 .line-players {
@@ -2019,7 +2136,7 @@ main {
 /* Free agents: pinned first, a step quieter than a real team, star instead of a number. */
 .line-card.line-free {
   background: transparent;
-  border: 1.5px dashed #3a463f;
+  border: 1.5px dashed #415a76;
   padding: 10px 14px;
 }
 

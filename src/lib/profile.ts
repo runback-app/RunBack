@@ -49,7 +49,7 @@ export function initials(name: string | null | undefined): string {
 }
 
 /** Stable color per name so the same player always gets the same initials circle. */
-const AVATAR_COLORS = ['#2e6b4e', '#8a4300', '#3b5b8c', '#6b4c8a', '#7a5a1c', '#2f6f73'];
+const AVATAR_COLORS = ['#225688', '#8a4300', '#3b5b8c', '#6b4c8a', '#7a5a1c', '#2e5677'];
 export function avatarColor(seed: string): string {
   let hash = 0;
   for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) | 0;
