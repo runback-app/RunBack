@@ -5,24 +5,17 @@ import { usePlay } from '../data';
 import { useLoad } from '../hooks';
 import { createCrew, fetchMyCrews } from '../lib/api';
 import { parseInviteCode } from '../lib/invite';
-import { ErrorNote, Loading } from '../components';
+import { CrewIcon, ErrorNote, Loading, SectionHero } from '../components';
 
 export function CrewsPage() {
   const { userId, ready } = useAuth();
 
   if (ready && !userId) {
     return (
-      <section className="page narrow">
-        <h1 className="page-title">Crews</h1>
-        <p>A crew is a group that runs together on a regular day. Start one, then text the invite link to your people.</p>
-        <p>
-          <Link className="btn btn-primary" to="/login?mode=signup&next=/crews">
-            Create your account
-          </Link>
-        </p>
-        <p className="muted">
-          Already have one? <Link to="/login?next=/crews">Sign in</Link>
-        </p>
+      <section className="page social-page">
+        <SectionHero label="Run with your people" title="Crews" description="Get your regulars together, plan the next run, and share an invite."
+          action={<><Link className="btn btn-primary" to="/login?mode=signup&next=/crews">Create your account</Link>
+            <Link className="btn btn-quiet" to="/login?next=/crews">Sign in</Link></>} />
       </section>
     );
   }
@@ -35,49 +28,54 @@ function MyCrews() {
   const [creating, setCreating] = useState(false);
 
   return (
-    <section className="page narrow">
-      <div className="section-head">
-        <h1 className="page-title">Your crews</h1>
-        {!creating && (
+    <section className="page social-page">
+      <SectionHero label="Run with your people" title="Your crews"
+        description="See your groups and get the next run on the calendar."
+        action={!creating && (
           <button className="btn btn-primary" onClick={() => setCreating(true)}>
             Start a crew
           </button>
-        )}
-      </div>
-
+        )} />
       {creating && <NewCrewForm onCancel={() => setCreating(false)} />}
 
-      {crews.loading && !crews.data && <Loading label="Loading crews" />}
-      {crews.error && <ErrorNote>{crews.error}</ErrorNote>}
+      <div className="social-layout">
+        <section className="social-stack" aria-labelledby="my-crews-heading">
+          <h2 id="my-crews-heading" className="display-title">My crews</h2>
+          {crews.loading && !crews.data && <Loading label="Loading crews" />}
+          {crews.error && <ErrorNote>{crews.error}</ErrorNote>}
 
-      {crews.data && crews.data.length === 0 && !creating && (
-        <div className="empty">
-          <p>You're not in a crew yet.</p>
-          <p className="muted">Start one for your regular run, or open an invite link a friend sent you.</p>
-        </div>
-      )}
+          {crews.data && crews.data.length === 0 && !creating && (
+            <div className="panel social-panel">
+              <p>You're not in a crew yet.</p>
+              <p className="muted">Start one for your regular run, or open an invite link a friend sent you.</p>
+            </div>
+          )}
 
-      {crews.data && crews.data.length > 0 && (
-        <ul className="crew-list">
-          {crews.data.map((crew) => {
-            const members = crew.crew_members[0]?.count ?? 0;
-            return (
-              <li key={crew.id}>
-                <Link to={`/crew/${crew.id}`} className="crew-link">
-                  <span className="crew-name">{crew.name}</span>
-                  <span className="crew-meta">
-                    {[crew.schedule, crew.courts?.name, members === 1 ? '1 player' : `${members} players`]
-                      .filter(Boolean)
-                      .join(', ')}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-
-      <JoinByLink />
+          {crews.data && crews.data.length > 0 && (
+            <ul className="crew-list">
+              {crews.data.map((crew) => {
+                const members = crew.crew_members[0]?.count ?? 0;
+                return (
+                  <li key={crew.id}>
+                    <Link to={`/crew/${crew.id}`} className="crew-link">
+                      <span className="social-symbol" aria-hidden="true"><CrewIcon /></span>
+                      <span className="crew-card-copy">
+                        <span className="crew-name">{crew.name}</span>
+                        <span className="crew-meta">
+                          {[crew.courts?.name, crew.schedule].filter(Boolean).join(' · ') || 'No regular court or time set'}
+                        </span>
+                      </span>
+                      <span className="crew-card-count"><strong>{members}</strong> {members === 1 ? 'player' : 'players'}</span>
+                      <span className="social-arrow" aria-hidden="true">›</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+        <JoinByLink />
+      </div>
     </section>
   );
 }
@@ -155,7 +153,7 @@ function JoinByLink() {
 
   return (
     <form
-      className="join-by-link"
+      className="panel social-panel join-by-link"
       onSubmit={(e) => {
         e.preventDefault();
         const code = parseInviteCode(value);
@@ -166,8 +164,10 @@ function JoinByLink() {
         navigate(`/join/${code}`);
       }}
     >
+      <h2>Join a crew</h2>
+      <p className="muted">Open an invite link someone sent you.</p>
       <label className="field">
-        <span>Got an invite link? Paste it here</span>
+        <span>Invite link</span>
         <div className="inline-field">
           <input value={value} onChange={(e) => setValue(e.target.value)} placeholder="runback…/join/…" />
           <button className="btn btn-quiet" type="submit">

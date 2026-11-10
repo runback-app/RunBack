@@ -10,7 +10,7 @@ import { useLoad, useNow } from '../hooks';
 import { deleteCrew, fetchCrew, leaveCrew } from '../lib/api';
 import { inviteUrl, smsHref } from '../lib/invite';
 import { isLive, timeLeft } from '../lib/time';
-import { ErrorNote, Loading, PlayerRow } from '../components';
+import { ErrorNote, Loading, PlayerRow, SectionHero } from '../components';
 
 export function CrewPage() {
   const { id = '' } = useParams();
@@ -75,10 +75,13 @@ export function CrewPage() {
       <p className="crumb">
         <Link to="/crews">Your crews</Link>
       </p>
-      <CrewPicture path={c.avatar_url} name={c.name}/><h1 className="page-title">{c.name}</h1>{c.description&&<p>{c.description}</p>}
-      <p className="court-meta">
-        {[c.schedule, c.courts?.name].filter(Boolean).join(' at ') || 'No regular time set'}
-      </p>
+      <SectionHero
+        label="Crew clubhouse"
+        title={c.name}
+        description={[c.schedule, c.courts?.name].filter(Boolean).join(' at ') || 'No regular time set'}
+        action={c.avatar_url ? <CrewPicture path={c.avatar_url} name={c.name} /> : undefined}
+      />
+      {c.description && <p>{c.description}</p>}
 
       <section className="subsection">
         <h2>Members ({members.length})</h2>

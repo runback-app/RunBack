@@ -20,6 +20,24 @@ export function ErrorNote({ children }: { children: ReactNode }) {
   );
 }
 
+export function SectionHero({ label, title, description, action }: {
+  label: string;
+  title: string;
+  description?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <header className="section-hero">
+      <div className="section-hero-copy">
+        <p className="home-eyebrow">{label}</p>
+        <h1 className="page-title">{title}</h1>
+        {description && <p className="home-sub">{description}</p>}
+      </div>
+      {action && <div className="section-hero-actions">{action}</div>}
+    </header>
+  );
+}
+
 export function Loading({ label = 'Loading' }: { label?: string }) {
   return (
     <p className="loading" aria-live="polite">
