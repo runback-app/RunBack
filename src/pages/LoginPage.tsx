@@ -1,3 +1,4 @@
+import { siteOrigin } from '../lib/native';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth';
@@ -125,7 +126,7 @@ export function LoginPage() {
         </label>
         {mode==='signup'&&<label className="field"><span>Confirm password</span><input type={showPassword?'text':'password'} value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} autoComplete="new-password" required minLength={6}/></label>}
         {error && <ErrorNote>{error}</ErrorNote>}
-        {mode==='signin'&&<div className="recovery-links"><button className="link-button" type="button" disabled={busy || resetWait > 0} onClick={async()=>{if(!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())){setError('Enter a valid email first, then tap Forgot password.');return;}setBusy(true);setError(null);setResetSent(false);try{const {error}=await supabase.auth.resetPasswordForEmail(email.trim(),{redirectTo:window.location.origin+'/reset-password'});if(error)throw error;setResetSent(true);setResetWait(60);}catch(e){setError(resetRequestError(e instanceof Error?e.message:''));}finally{setBusy(false);}}}>{resetWait > 0 ? `Request another link in ${resetWait}s` : 'Forgot password?'}</button><Link to="/forgot-email">Forgot email?</Link></div>}
+        {mode==='signin'&&<div className="recovery-links"><button className="link-button" type="button" disabled={busy || resetWait > 0} onClick={async()=>{if(!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())){setError('Enter a valid email first, then tap Forgot password.');return;}setBusy(true);setError(null);setResetSent(false);try{const {error}=await supabase.auth.resetPasswordForEmail(email.trim(),{redirectTo:siteOrigin()+'/reset-password'});if(error)throw error;setResetSent(true);setResetWait(60);}catch(e){setError(resetRequestError(e instanceof Error?e.message:''));}finally{setBusy(false);}}}>{resetWait > 0 ? `Request another link in ${resetWait}s` : 'Forgot password?'}</button><Link to="/forgot-email">Forgot email?</Link></div>}
         {resetSent&&<p role="status" className="ok">If an account exists for that email, check its inbox and spam folder for a reset link. Open the newest link. No email? <Link to="/forgot-email">Get recovery help</Link>.</p>}
         {mode === 'signup' && (
           <label className="agree">

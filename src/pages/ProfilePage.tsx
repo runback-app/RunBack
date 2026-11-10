@@ -1,3 +1,4 @@
+import { isNativeApp } from '../lib/native';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth';
@@ -442,7 +443,7 @@ function AlertSettings() {
         </div>
       )}
       {support === 'unsupported' && (
-        <p className="muted">This browser can't show alerts. Try Chrome, Edge, Firefox, or Safari on a phone or computer.</p>
+        <p className="muted">{isNativeApp ? 'Alerts in the app are coming soon. For now, turn them on at runback.net.' : "This browser can't show alerts. Try Chrome, Edge, Firefox, or Safari on a phone or computer."}</p>
       )}
       {support === 'ready' && (
         <div className="device-row">

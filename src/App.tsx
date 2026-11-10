@@ -20,6 +20,7 @@ import { PlayerPage } from './pages/PlayerPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { FriendsPage } from './pages/FriendsPage';
 import { AddFriendPage } from './pages/AddFriendPage';
+import { OfflineScreen } from './Offline';
 
 function Header() {
   const { userId, profile } = useAuth();
@@ -127,6 +128,7 @@ export function App() {
         </span>
       </footer>
       <TabBar />
+      <OfflineScreen />
       <Analytics beforeSend={(event) => ({ ...event, url: cleanPageUrl(event.url) })} />
     </div>
   );

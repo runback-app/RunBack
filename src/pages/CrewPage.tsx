@@ -1,3 +1,4 @@
+import { siteOrigin } from '../lib/native';
 import { CrewRuns } from '../RunTools';
 import { Chat } from '../Chat';
 import { CrewSettings, CrewPicture } from '../CrewSettings';
@@ -161,7 +162,7 @@ export function CrewPage() {
 }
 
 function InvitePanel({ crewName, code, fresh }: { crewName: string; code: string; fresh: boolean }) {
-  const url = inviteUrl(window.location.origin, code);
+  const url = inviteUrl(siteOrigin(), code);
   const [copied, setCopied] = useState(false);
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 

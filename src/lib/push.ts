@@ -1,3 +1,4 @@
+import { isNativeApp } from './native';
 // Public half of the key pair that signs alerts. Safe to share; the private half lives in Supabase Vault.
 export const VAPID_PUBLIC_KEY =
   'BOdtan8KG-S6in5lBCDbcJgdxu7E9KTUp_gK-GPnHI_RbAqM_3H1W3ikdGApS0rMq4TsJBaDHIpffGnVr57ZOB8';
@@ -36,6 +37,8 @@ export function alertSupport(env: {
 
 export function currentAlertSupport(): AlertSupport {
   if (typeof window === 'undefined') return 'unsupported';
+  // The phone app will get Apple push alerts separately; web push doesn't work inside it.
+  if (isNativeApp) return 'unsupported';
   const nav = navigator as Navigator & { standalone?: boolean };
   return alertSupport({
     userAgent: navigator.userAgent,

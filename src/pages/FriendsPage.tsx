@@ -1,3 +1,4 @@
+import { siteOrigin } from '../lib/native';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth';
@@ -212,7 +213,7 @@ function FindPlayers({
 }
 
 function FriendLink({ username }: { username: string }) {
-  const url = friendUrl(window.location.origin, username);
+  const url = friendUrl(siteOrigin(), username);
   const [copied, setCopied] = useState(false);
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
