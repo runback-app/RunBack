@@ -102,6 +102,9 @@ export function PrivacyPage() {
       <p>You need to be at least 13 to use Runback.</p>
 
       <h2 id="contact">Questions or requests</h2>
+      <p>
+        Email <a href="mailto:support@runback.net">support@runback.net</a> with questions or requests about your data.
+      </p>
       <FeedbackForm />
     </article>
   );
