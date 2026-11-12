@@ -29,3 +29,15 @@ Run `npm run app:sync` again after every code change you want in the app.
 - Apple push alerts (above)
 - Open runback.net links in the app (universal links) so crew invites and email links land in the app
 - Test on a real iPhone: sign in, check in, photo upload, chat, Got next, friends, crews, offline screen, swipe back
+
+### Activate and test crew invite links
+
+The native router accepts ordinary HTTPS crew invites on `runback.net`. Before enabling the website association, verify the signing team's App ID prefix for `net.runback.app`. In Xcode, add the Associated Domains capability with `applinks:runback.net`. Serve `/.well-known/apple-app-site-association` on the production domain as JSON with no redirect, using the verified app identifier.
+
+Scope the website association to crew invite paths. Exclude signup confirmation and auth error callbacks that return to an invite URL with query parameters or a fragment. Password reset and signup verification use the existing web auth flow. Test that the association serves correctly before installing the signed build on an iPhone.
+
+- Tap a crew invite in Messages with Runback closed, then again with Runback already running.
+- Repeat while signed out. Sign in and confirm the same invitation is still open.
+- Open the invite on a phone without Runback and confirm that the browser join page works.
+- Sign up from a crew invite and open the verification email. Confirm verification succeeds and the invite is still available.
+- Request a password reset from Runback, open the email on the phone, save a new password, and use it to sign back in.
