@@ -33,8 +33,16 @@ export function runTime(v:string){return new Intl.DateTimeFormat('en-US',{timeZo
 export function tucsonISO(v:string){if(!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(v))throw new Error('Choose a date and time.');const d=new Date(v+':00-07:00');if(!Number.isFinite(d.getTime()))throw new Error('Choose a valid date.');return d.toISOString();}
 export function localRunTime(v:string){return new Date(new Date(v).getTime()-7*3600000).toISOString().slice(0,16);}
 export async function createRun(crew_id:string,title:string,court_id:string,when:string,duration_minutes:number,repeat:string,weekdays:number[]){const starts_at=tucsonISO(when);if(repeat!=='once'&&new Date(starts_at).getTime()>Date.now()+84*86400000)throw new Error('Start a recurring schedule within the next 12 weeks.');if(new Date(starts_at).getTime()<=Date.now())throw new Error('Pick a future time.');if(repeat==='once'){const {error}=await db.from('runs').insert({crew_id,title:title.trim(),court_id,starts_at,duration_minutes});check(error);}else{if(!weekdays.length)throw new Error('Choose at least one day.');const {error}=await db.from('run_series').insert({crew_id,title:title.trim(),court_id,starts_on:when.slice(0,10),local_time:when.slice(11),weekdays,timezone:'America/Phoenix',duration_minutes});check(error);}}
-export async function updateRun(id:string,changes:Partial<Pick<Run,'title'|'court_id'|'starts_at'|'cancelled'>>){const {error}=await db.from('runs').update(changes).eq('id',id);check(error);}
-export async function stopSeries(id:string){const {error}=await db.from('run_series').update({active:false}).eq('id',id);check(error);}
+export async function updateRun(id: string, changes: Partial<Pick<Run, 'title' | 'court_id' | 'starts_at' | 'cancelled'>>) {
+  const { data, error } = await db.from('runs').update(changes).eq('id', id).select('id').maybeSingle();
+  check(error);
+  if (!data) throw new Error('Could not update this run. Make sure you are still the crew owner.');
+}
+export async function stopSeries(id: string) {
+  const { data, error } = await db.from('run_series').update({ active: false }).eq('id', id).select('id').maybeSingle();
+  check(error);
+  if (!data) throw new Error('Could not stop this schedule. Make sure you are still the crew owner.');
+}
 export async function updateCrewSettings(id:string,changes:Record<string,unknown>){const {error}=await db.from('crews').update(changes).eq('id',id);check(error);}
 export async function removeMember(crew:string,user:string){const {error}=await db.from('crew_members').delete().eq('crew_id',crew).eq('user_id',user);check(error);}
 export async function crewPhotoUrl(path:string){const {data,error}=await db.storage.from('crew-photos').createSignedUrl(path,3600);check(error);return data!.signedUrl;}
