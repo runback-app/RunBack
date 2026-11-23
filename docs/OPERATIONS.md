@@ -72,3 +72,18 @@ RUNBACK_QA_FIXTURE=/absolute/scratch/runback-qa.json node --use-env-proxy --env-
 ```
 
 Use `--keep` only for a browser walkthrough, then run the same command with `--cleanup`. The local fixture contains disposable credentials and must never be committed or shared.
+
+## Reliable support email rollout (November 23)
+
+This change has not yet been applied to the hosted database. Use the shared project `ioxmdthiblgudygedjmc`.
+
+1. Deploy the updated `send-alerts` function including `delivery.ts` and `apns.ts`, retaining its existing JWT-verification configuration. It accepts opaque event IDs from database triggers and restricts lookups to server-side RPCs. Never add private keys to the client or repository.
+2. Apply `20261117180000_serialize_recurring_run_cancellation.sql`, `20261123232932_reliable_support_email_delivery.sql`, and `20261123232938_native_iphone_push.sql` in order. The email migration replaces consuming lookups with read-only lookups, preserves service-only grants, and adds a five-minute retry job. Deploy the sender immediately before this migration; the old sender does not record receipts with the new lookup semantics.
+3. Verify `RESEND_API_KEY` and `REPORT_ALERT_TO` are configured and that support forwarding reaches both Sanjay and Nick. Send explicitly labeled QA feedback and reports using disposable/private test content, then check Resend acceptance and both destination inboxes. The code does not treat provider acceptance as proof of inbox delivery.
+4. Run the rolled-back permission tests in `supabase/tests/`. `npm run test:db` runs the real migration SQL and RLS locally with platform HTTP/cron stubs. It sends no mail and does not access production. With `RUNBACK_TEST_DB_URL` pointed at a disposable loopback PostgreSQL database, the suite also overlaps scheduler/stop transactions in both lock orderings. Both orderings passed on PostgreSQL 17.6; repeat on staging before production rollout.
+
+Pending feedback/court/crew report emails retry for up to 23 hours from record creation, within Resend's 24-hour idempotency window. Up to 20 per queue are retried each pass. Delivery is acknowledged only after provider acceptance. Missing credentials/provider failures leave new records pending. Review older pending records manually; no emails are automatically resent after that window.
+
+Historical rows marked handled by the old implementation cannot safely be distinguished from delivered rows using those timestamps alone. They are not reset automatically. Review provider logs before manually resending anything old. Provider payloads use a stable event key; avoid editing the underlying report/user metadata while a retry is outstanding.
+
+The current branch includes the work from draft PRs #19 and #20. Do not merge duplicate versions separately once this branch lands. Stripe remains paused in its separate draft.

@@ -1,4 +1,22 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
-  "git": { "deploymentEnabled": false }
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "git": {
+    "deploymentEnabled": false
+  },
+  "headers": [
+    {
+      "source": "/.well-known/apple-app-site-association",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ]
+    }
+  ]
 }

@@ -41,13 +41,16 @@ begin
     raise exception 'Expected the feedback email to be queued';
   end if;
 
-  -- The server gets the details once, with the player's email for Reply-To.
+  -- The server can retry the lookup until delivery is recorded, with the player's email for Reply-To.
   set local role service_role;
   select count(*) into n from public.feedback_email_details(fid) d
     where d.message = 'Feedback email test' and d.reply_email is not null;
   if n <> 1 then raise exception 'Expected one email with a reply address, got %', n; end if;
   select count(*) into n from public.feedback_email_details(fid);
-  if n <> 0 then raise exception 'Second lookup must return nothing (already emailed)'; end if;
+  if n <> 1 then raise exception 'Unsent feedback must remain retryable'; end if;
+  update public.feedback set emailed_at = now() where id = fid;
+  select count(*) into n from public.feedback_email_details(fid);
+  if n <> 0 then raise exception 'Accepted email must not be sent again'; end if;
   reset role;
 end $$;
 rollback;

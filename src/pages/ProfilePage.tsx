@@ -402,7 +402,7 @@ function AlertSettings() {
   useEffect(() => {
     if (support !== 'ready') return;
     currentSubscription()
-      .then((sub) => setDeviceOn(!!sub && Notification.permission === 'granted'))
+      .then((sub) => setDeviceOn(!!sub && (isNativeApp || Notification.permission === 'granted')))
       .catch(() => setDeviceOn(false));
   }, [support]);
 
@@ -443,7 +443,7 @@ function AlertSettings() {
         </div>
       )}
       {support === 'unsupported' && (
-        <p className="muted">{isNativeApp ? 'Alerts in the app are coming soon. For now, turn them on at runback.net.' : "This browser can't show alerts. Try Chrome, Edge, Firefox, or Safari on a phone or computer."}</p>
+        <p className="muted">{isNativeApp ? 'iPhone notifications are being set up. Run updates are available in the Updates tab.' : "This browser can't show alerts. Try Chrome, Edge, Firefox, or Safari on a phone or computer."}</p>
       )}
       {support === 'ready' && (
         <div className="device-row">
@@ -457,9 +457,9 @@ function AlertSettings() {
           <div className="form-actions">
             {deviceOn ? (
               <>
-                <button className="btn btn-quiet" disabled={busy} onClick={() => run(showTestAlert, 'Sent a test alert.')}>
+                {!isNativeApp && <button className="btn btn-quiet" disabled={busy} onClick={() => run(showTestAlert, 'Sent a test alert.')}>
                   Send a test
-                </button>
+                </button>}
                 <button
                   className="btn btn-quiet"
                   disabled={busy}
@@ -481,7 +481,7 @@ function AlertSettings() {
                   run(async () => {
                     await turnOnAlerts();
                     setDeviceOn(true);
-                  }, 'Alerts are on. You can send yourself a test.')
+                  }, isNativeApp ? 'iPhone alerts are on.' : 'Alerts are on. You can send yourself a test.')
                 }
               >
                 {busy ? 'Turning on…' : 'Turn on alerts'}

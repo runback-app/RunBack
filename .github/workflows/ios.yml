@@ -1,0 +1,26 @@
+name: iPhone build
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'ios/**'
+      - 'src/**'
+      - 'package*.json'
+      - 'capacitor.config.ts'
+      - '.github/workflows/ios.yml'
+jobs:
+  simulator:
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Configure public app settings
+        run: cp .env.example .env.local
+      - run: npm run app:sync
+      - name: Compile unsigned simulator app
+        run: xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -destination 'generic/platform=iOS Simulator' -derivedDataPath /tmp/runback-ios CODE_SIGNING_ALLOWED=NO build

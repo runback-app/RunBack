@@ -12,6 +12,14 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: runback_test
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,6 +31,10 @@ jobs:
         run: npm run typecheck
       - name: Tests
         run: npm test
+      - name: Database rules and migrations
+        run: npm run test:db
+        env:
+          RUNBACK_TEST_DB_URL: postgresql://postgres:postgres@localhost:5432/runback_test
       - name: Build
         run: npx vite build
 
