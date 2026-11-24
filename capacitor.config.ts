@@ -1,3 +1,4 @@
+/// <reference types="@capacitor/push-notifications" />
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
@@ -11,6 +12,7 @@ const config: CapacitorConfig = {
     allowsLinkPreview: false,
   },
   plugins: {
+    PushNotifications: { presentationOptions: ['sound', 'banner', 'list'] },
     SplashScreen: {
       launchAutoHide: false,
       backgroundColor: '#0F1512',

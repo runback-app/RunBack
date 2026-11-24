@@ -6,6 +6,8 @@
 // Who gets alerted is decided in SQL (public.alert_targets), which also makes sure
 // each check-in is only handled once, so calling this twice does nothing extra.
 import webpush from 'npm:web-push@3.6.7';
+import { deliverEmail } from './delivery.ts';
+import { cachedAppleAuthorization, sendAppleAlert, type AppleConfig } from './apns.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2.118.0';
 
 const VAPID_PUBLIC_KEY = 'BOdtan8KG-S6in5lBCDbcJgdxu7E9KTUp_gK-GPnHI_RbAqM_3H1W3ikdGApS0rMq4TsJBaDHIpffGnVr57ZOB8';
@@ -90,32 +92,12 @@ async function sendCrewReportEmail(reportId: string): Promise<Response> {
     `Review in Supabase → crew_messages → ${report.message_id}`,
     TABLE_EDITOR,
   ].join('\n');
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'Idempotency-Key': `runback-crew-report/${reportId}`,
-    },
-    body: JSON.stringify({
-      from: 'Runback alerts <alerts@runback.net>',
-      to,
-      subject: `Runback: ${thread} chat message reported`,
-      text,
-    }),
+  await deliverEmail({
+    apiKey,
+    idempotencyKey: `runback-crew-report/${reportId}`,
+    payload: { from: 'Runback alerts <alerts@runback.net>', to, subject: `Runback: ${thread} chat message reported`, text },
+    markSent: () => markEmailSent('crew_message_reports', 'emailed_at', reportId),
   });
-  if (!response.ok) {
-    console.error('crew report email failed', response.status);
-    return reply({ error: 'Email failed' }, 502);
-  }
-  const { error: updateError } = await admin
-    .from('crew_message_reports')
-    .update({ emailed_at: new Date().toISOString() })
-    .eq('id', reportId);
-  if (updateError) {
-    console.error('crew report email receipt update failed', updateError.code);
-    return reply({ error: 'Email receipt update failed' }, 500);
-  }
   return reply({ sent: 1 });
 }
 
@@ -163,15 +145,12 @@ async function sendReportEmail(alertId: string): Promise<Response> {
     '- Repeat problem player? Note their player link above.',
   ].join('\n');
 
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: 'Runback alerts <alerts@runback.net>', to, subject, text }),
+  await deliverEmail({
+    apiKey,
+    idempotencyKey: `runback-court-report/${alertId}`,
+    payload: { from: 'Runback alerts <alerts@runback.net>', to, subject, text },
+    markSent: () => markEmailSent('report_alert_queue', 'processed_at', alertId),
   });
-  if (!res.ok) {
-    console.error('report email failed', res.status, await res.text());
-    return reply({ error: 'Email failed' }, 502);
-  }
   return reply({ sent: 1 });
 }
 
@@ -220,25 +199,35 @@ async function sendFeedbackEmail(feedbackId: string): Promise<Response> {
     replyOk ? 'Hit Reply to answer them (it goes to their sign-in email).' : 'No reply address on file.',
   ].join('\n');
 
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: 'Runback feedback <alerts@runback.net>',
-      to,
-      subject: `Runback feedback from ${name}`,
-      text,
+  await deliverEmail({
+    apiKey,
+    idempotencyKey: `runback-feedback/${feedbackId}`,
+    payload: {
+      from: 'Runback feedback <alerts@runback.net>', to,
+      subject: `Runback feedback from ${name}`, text,
       ...(replyOk ? { reply_to: f.reply_email } : {}),
-    }),
+    },
+    markSent: () => markEmailSent('feedback', 'emailed_at', feedbackId),
   });
-  if (!res.ok) {
-    console.error('feedback email failed', res.status, await res.text());
-    return reply({ error: 'Email failed' }, 502);
-  }
   return reply({ sent: 1 });
 }
 
+async function markEmailSent(table: string, column: string, id: string): Promise<void> {
+  const { error } = await admin.from(table).update({ [column]: new Date().toISOString() }).eq('id', id);
+  if (error) throw new Error('Could not save email receipt');
+}
+
 Deno.serve(async (req) => {
+  try {
+    return await handleRequest(req);
+  } catch (error) {
+    // Do not log message bodies, provider response bodies, or credentials.
+    console.error('Alert delivery failed', error instanceof Error ? error.message : 'Unknown error');
+    return reply({ error: 'Delivery failed; pending support emails will be retried' }, 502);
+  }
+});
+
+async function handleRequest(req: Request): Promise<Response> {
   if (req.method !== 'POST') return reply({ error: 'POST only' }, 405);
 
   let checkinId: unknown;
@@ -278,21 +267,34 @@ Deno.serve(async (req) => {
   const targets = (data ?? []) as Target[];
   if (targets.length === 0) return reply({ sent: 0 });
 
-  if (!signingReady) {
+  if (targets.some(t => !t.endpoint.startsWith('apns://')) && !signingReady) {
     const { data: key, error: keyError } = await admin.rpc('alert_signing_key');
-    if (keyError || typeof key !== 'string' || !key) {
-      console.error('signing key missing', keyError?.message);
-      return reply({ error: 'Alerts are not set up' }, 500);
+    if (!keyError && typeof key === 'string' && key) {
+      webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, key);
+      signingReady = true;
     }
-    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, key);
-    signingReady = true;
+  }
+  function appleConfig(endpoint: string): AppleConfig {
+    const prefix = endpoint.startsWith('apns://sandbox/') ? 'APNS_SANDBOX_' : 'APNS_';
+    return { keyId: Deno.env.get(prefix + 'KEY_ID') ?? '', teamId: Deno.env.get('APNS_TEAM_ID') ?? '',
+      privateKey: Deno.env.get(prefix + 'PRIVATE_KEY') ?? '', topic: 'net.runback.app' };
   }
 
   let sent = 0;
   const gone: string[] = [];
+  let failed = 0;
   await Promise.all(
     targets.map(async (t) => {
       try {
+        if (t.endpoint.startsWith('apns://')) {
+          const config = appleConfig(t.endpoint);
+          if (!config.keyId || !config.teamId || !config.privateKey) throw new Error('Apple push is not configured');
+          const result = await sendAppleAlert({ ...t, config, authorization: await cachedAppleAuthorization(config) });
+          if (result === 'gone') gone.push(t.endpoint);
+          else sent++;
+          return;
+        }
+        if (!signingReady) throw new Error('Web push is not configured');
         await webpush.sendNotification(
           { endpoint: t.endpoint, keys: { p256dh: t.p256dh, auth: t.auth } },
           JSON.stringify({ title: t.title, body: t.body, url: t.url }),
@@ -304,11 +306,11 @@ Deno.serve(async (req) => {
         // 410 means the device turned alerts off or the app was removed, so forget it.
         // 404 can be a brief hiccup right after someone turns alerts on, so just log it.
         if (status === 410) gone.push(t.endpoint);
-        else console.error('push failed', status, (err as Error).message);
+        else { failed++; console.error('push failed', status, (err as Error).message); }
       }
     }),
   );
 
   if (gone.length) await admin.from('push_subscriptions').delete().in('endpoint', gone);
-  return reply({ sent, removed: gone.length });
-});
+  return reply({ sent, failed, removed: gone.length }, failed ? 502 : 200);
+}

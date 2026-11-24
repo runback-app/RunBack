@@ -7,7 +7,7 @@ import { useAuth } from './auth';
 import { cleanPageUrl } from './lib/analytics';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { TermsPage } from './pages/TermsPage';
-import { Avatar, CourtIcon, CrewIcon, FriendsIcon, MyStatusBar, YouIcon } from './components';
+import { Avatar, CourtIcon, CrewIcon, FriendsIcon, MyStatusBar, YouIcon, UpdatesIcon } from './components';
 import { missingConfig } from './lib/supabase';
 import { CourtPage } from './pages/CourtPage';
 import { CourtsPage } from './pages/CourtsPage';
@@ -66,6 +66,7 @@ function TabBar() {
           <span>Friends</span>
         </NavLink>
       )}
+      {userId && <NavLink to="/updates"><UpdatesIcon /><span>Updates</span></NavLink>}
       <NavLink to={userId ? '/me' : '/login'}>
         <YouIcon />
         <span>{userId ? 'You' : 'Sign in'}</span>

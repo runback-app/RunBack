@@ -1,3 +1,5 @@
+import { isNativeApp } from './lib/native';
+import { currentNativeDevice, enableNativeAlerts, disableNativeAlerts } from './lib/nativePush';
 import { deletePushSubscription, savePushSubscription } from './lib/api';
 import { VAPID_PUBLIC_KEY, base64UrlToBytes } from './lib/push';
 
@@ -14,7 +16,8 @@ async function registration(): Promise<ServiceWorkerRegistration> {
   return navigator.serviceWorker.register('/sw.js');
 }
 
-export async function currentSubscription(): Promise<PushSubscription | null> {
+export async function currentSubscription(): Promise<{ endpoint: string } | null> {
+  if (isNativeApp) return currentNativeDevice();
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
   const reg = await navigator.serviceWorker.getRegistration();
   return reg ? reg.pushManager.getSubscription() : null;
@@ -22,6 +25,7 @@ export async function currentSubscription(): Promise<PushSubscription | null> {
 
 /** Asks permission, subscribes this device, and saves it to the player's account. */
 export async function turnOnAlerts(): Promise<void> {
+  if (isNativeApp) return enableNativeAlerts();
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') {
     throw new Error(
@@ -51,14 +55,17 @@ export async function turnOnAlerts(): Promise<void> {
 }
 
 export async function turnOffAlerts(): Promise<void> {
+  if (isNativeApp) return disableNativeAlerts();
   const sub = await currentSubscription();
   if (!sub) return;
   await deletePushSubscription(sub.endpoint).catch(() => undefined);
-  await sub.unsubscribe();
+  const reg = await navigator.serviceWorker.getRegistration();
+  await (await reg?.pushManager.getSubscription())?.unsubscribe();
 }
 
 /** Shows a sample alert right on this device so people can see what they'll get. */
 export async function showTestAlert(): Promise<void> {
+  if (isNativeApp) throw new Error('Test iPhone alerts by having a crewmate check in or update a run you joined.');
   const reg = await registration();
   await reg.showNotification('Runback alerts are on', {
     body: "You'll hear about it here when your crew checks in.",

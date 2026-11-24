@@ -2,6 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
+import { NativePush } from './NativePush';
+import { NativeInviteLinks } from './NativeInviteLinks';
 import { AuthProvider } from './auth';
 import { PlayProvider } from './data';
 import { registerServiceWorker } from './alerts';
@@ -14,7 +16,9 @@ void startNativeApp();
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
+      {isNativeApp && <NativeInviteLinks />}
       <AuthProvider>
+        {isNativeApp && <NativePush />}
         <PlayProvider>
           <App />
         </PlayProvider>
